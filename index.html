@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tactical Vector Simulator 3D - Autonomous Pipeline</title>
+    <title>PROYECTO HEFESTO — Centro de Control y Simulación de Vuelo | Navegación Autónoma 3D</title>
     <link rel="stylesheet" href="css/styles.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
@@ -14,10 +14,10 @@
             <div class="brand-icon"></div>
             <div class="brand-text-block">
                 <div class="brand-title-row">
-                    <h1 class="brand-title">TACTICAL VECTOR</h1>
+                    <h1 class="brand-title">PROYECTO HEFESTO</h1>
                     <span class="brand-badge-3d">3D</span>
                 </div>
-                <span class="brand-classification">ORDNANCE &amp; PIPELINE SIMULATOR</span>
+                <span class="brand-classification">DIVISIÓN DE CONTROL ESPACIAL // HEFESTO-1</span>
             </div>
         </div>
 
@@ -91,7 +91,10 @@
             </div>
 
             <div class="control-cluster control-cluster-accent">
-                <a href="fichas-imprimibles.html" target="_blank" class="tactical-btn-small btn-highlight" title="Imprimir hojas de ruta y planificación táctica en papel" style="text-decoration: none; display: inline-flex; align-items: center; gap: 4px;">
+                <button id="btn-open-briefing" class="tactical-btn-small btn-highlight" type="button" title="Guía e Introducción a la Misión">
+                    &#x1F4D6; GUÍA DE MISIÓN
+                </button>
+                <a href="fichas-imprimibles.html" target="_blank" class="tactical-btn-small" title="Imprimir hojas de ruta y planificación táctica en papel" style="text-decoration: none; display: inline-flex; align-items: center; gap: 4px;">
                     &#x1F5B6;&#xFE0F; FICHAS EN PAPEL
                 </a>
             </div>
@@ -106,7 +109,7 @@
         <div class="entity-radio-group">
             <label class="entity-radio-pill pill-pylon">
                 <input type="radio" name="placement-entity-type" value="PYLON" checked>
-                <span>&#x25B2; PILÓN OBSTÁCULO</span>
+                <span>&#x25B2; MONTAÑA ROCOSA</span>
             </label>
             <label class="entity-radio-pill pill-mine">
                 <input type="radio" name="placement-entity-type" value="MINE">
@@ -122,7 +125,8 @@
             </label>
             <label class="entity-radio-pill pill-anomaly">
                 <input type="radio" name="placement-entity-type" value="ANOMALY">
-                <span>&#x2668; GRIETA ANOMALÍA</span>
+                <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="#c084fc" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:-2px; margin-right:3px;"><path d="M2 13l5-6 3 5 4-8 5 11 3-4"/></svg>
+                <span>GRIETA ANOMALÍA</span>
             </label>
         </div>
         <div class="subtoolbar-actions">
@@ -145,16 +149,25 @@
                 <div class="hud-top-row">
                     <div class="telemetry-card">
                         <div class="telemetry-metric">
-                            <span class="metric-label">COORDINATES</span>
+                            <span class="metric-label">COORDENADAS</span>
                             <span id="telemetry-coordinates" class="metric-val">(1, 1)</span>
                         </div>
                         <div class="telemetry-metric">
-                            <span class="metric-label">HEADING VECTOR</span>
-                            <span id="telemetry-heading" class="metric-val">NORTH (+Y)</span>
+                            <span class="metric-label">RUMBO VECTORIAL</span>
+                            <span id="telemetry-heading" class="metric-val">NORTE (+Y)</span>
                         </div>
                         <div class="telemetry-metric">
-                            <span class="metric-label">TARGET BEACON</span>
+                            <span class="metric-label">OBJETIVO FARO</span>
                             <span id="telemetry-target" class="metric-val">(1, 12)</span>
+                        </div>
+                        <div class="telemetry-metric telemetry-battery">
+                            <span class="metric-label">BATERÍA ROVER</span>
+                            <div class="battery-gauge-wrapper">
+                                <span id="telemetry-battery-val" class="metric-val battery-val-high">100%</span>
+                                <div class="battery-mini-bar">
+                                    <div id="telemetry-battery-fill" class="battery-fill-bar fill-high" style="width: 100%;"></div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                     <div class="mission-score-card" id="mission-score-card">
@@ -185,7 +198,7 @@
             </div>
             <div class="tactical-legend-dock" id="tactical-legend" aria-label="Leyenda Táctica de Navegación">
                 <div class="legend-header">
-                    <span class="legend-title">&#x1F4CB; LEYENDA TÁCTICA</span>
+                    <span class="legend-title">&#x1F4CB; HEFESTO-1 // LEYENDA TÁCTICA</span>
                     <div class="legend-header-actions">
                         <button id="btn-expand-legend" class="legend-action-btn" type="button" title="Ampliar leyenda en grande">&#x26F6; AMPLIAR</button>
                         <button id="btn-toggle-legend" class="legend-toggle-btn" type="button" title="Minimizar / Restaurar">&#x25BE;</button>
@@ -219,16 +232,18 @@
                         <span class="legend-icon icon-rock">&#x2B22;</span>
                         <span class="legend-text"><strong>MUESTRA</strong>: Roca geoda</span>
                     </div>
-                    <div class="legend-item" title="Pilón de defensa que bloquea el paso (Colisión fatal)">
-                        <span class="legend-icon icon-pylon">&#x26A1;</span>
-                        <span class="legend-text"><strong>PILÓN</strong>: Obstáculo</span>
+                    <div class="legend-item" title="Montaña o formación rocosa que bloquea el paso (Colisión fatal)">
+                        <span class="legend-icon icon-pylon">&#x25B2;</span>
+                        <span class="legend-text"><strong>MONTAÑA</strong>: Obstáculo</span>
                     </div>
                     <div class="legend-item" title="Mina explosiva oculta (Detona al pisarla, visible con SCAN)">
                         <span class="legend-icon icon-mine">&#x1F4A5;</span>
                         <span class="legend-text"><strong>MINA</strong>: Peligro</span>
                     </div>
-                    <div class="legend-item" title="Falla de terreno oculta (Usar SCAN para revelar)">
-                        <span class="legend-icon icon-anomaly">&#x2668;</span>
+                    <div class="legend-item" title="Falla de terreno o grieta inestable (Usar SCAN para revelar)">
+                        <span class="legend-icon icon-anomaly">
+                            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="#c084fc" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:-2px; filter: drop-shadow(0 0 3px #9333ea);"><path d="M2 13l5-6 3 5 4-8 5 11 3-4"/></svg>
+                        </span>
                         <span class="legend-text"><strong>GRIETA</strong>: Anomalía (Scan)</span>
                     </div>
                 </div>
@@ -272,15 +287,15 @@
 
                 <div class="memory-hud-card">
                     <div class="memory-hud-header">
-                        <span class="memory-title">MEMORY ALLOCATION HUD</span>
-                        <span id="memory-badge" class="memory-badge badge-optimal">OPTIMAL</span>
+                        <span class="memory-title">MEMORIA DEL ALGORITMO</span>
+                        <span id="memory-badge" class="memory-badge badge-optimal">MEMORIA ÓPTIMA</span>
                     </div>
                     <div class="memory-bar-track">
                         <div id="memory-bar-fill" class="memory-bar-fill bar-optimal"></div>
                     </div>
                     <div class="memory-info-row">
-                        <span id="memory-counter">0 INSTRUCTIONS</span>
-                        <span id="memory-description">Resource budget optimal.</span>
+                        <span id="memory-counter">0 INSTRUCCIONES</span>
+                        <span id="memory-description">Búfer de memoria óptimo.</span>
                     </div>
                 </div>
 
@@ -303,6 +318,178 @@
             </div>
         </section>
     </main>
+
+    <!-- BRIEFING & INTRODUCTION MODAL -->
+    <div id="modal-briefing" class="tactical-modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="briefing-title">
+        <div class="tactical-modal-card briefing-card">
+            <header class="modal-card-header">
+                <div class="modal-brand-group">
+                    <span class="modal-badge-agency">&#x1F6F0;&#xFE0F; DIVISIÓN DE CONTROL ESPACIAL // PROYECTO HEFESTO</span>
+                    <h2 id="briefing-title" class="modal-title">CENTRO DE CONTROL Y SIMULACIÓN DE VUELO</h2>
+                    <span class="modal-subtitle">Instrucciones de Misión &bull; Base de Operaciones HEFESTO-1</span>
+                </div>
+                <button type="button" class="modal-close-btn" id="btn-close-briefing" title="Cerrar introducción">&times;</button>
+            </header>
+
+            <div class="modal-card-body">
+                <div class="briefing-alert-banner">
+                    <span class="alert-icon">&#x26A0;&#xFE0F;</span>
+                    <div class="alert-content">
+                        <strong>ÁREA RESTRINGIDA // PERSONAL TÉCNICO AUTORIZADO:</strong>
+                        <span>Has ingresado a la consola de vuelo de la <em>Clase 2: Fase de Programación Digital</em>. Tu misión es certificar la navegación autónoma del explorador robótico en el terreno hostil de HEFESTO-1.</span>
+                    </div>
+                </div>
+
+                <div class="briefing-grid-cards">
+                    <div class="briefing-card-item">
+                        <div class="card-item-header">
+                            <span class="item-icon">&#x1F4E1;</span>
+                            <h3>1. LA RESTRICCIÓN FÍSICA: LATENCIA</h3>
+                        </div>
+                        <p>A distancias interplanetarias, las telecomunicaciones entre la Tierra y la base HEFESTO-1 tienen un <strong>retraso de varios minutos</strong>.</p>
+                        <div class="item-callout">
+                            <strong>El pilotaje por control remoto en tiempo real (joystick) queda terminantemente descartado.</strong>
+                        </div>
+                        <p>El rover debe ser programado previamente con algoritmos autónomos y deterministas antes de autorizar el despegue.</p>
+                    </div>
+
+                    <div class="briefing-card-item">
+                        <div class="card-item-header">
+                            <span class="item-icon">&#x1F4BB;</span>
+                            <h3>2. ¿QUÉ ES ESTE SIMULADOR?</h3>
+                        </div>
+                        <p>Es un banco de pruebas de software 3D interactivo donde los <strong>Ingenieros de Vuelo</strong> verifican sus rutas y bucles (<em>loops</em>):</p>
+                        <ul class="briefing-features-list">
+                            <li><strong>Pruebas Unitarias (<code>TEST UNITARIO</code>):</strong> Cada ingeniero valida su propio módulo en aislamiento sin interferir con sus pares.</li>
+                            <li><strong>Pipeline de Integración:</strong> Los 4 módulos se ensamblan en un relevo continuo hasta la meta final.</li>
+                        </ul>
+                    </div>
+
+                    <div class="briefing-card-item">
+                        <div class="card-item-header">
+                            <span class="item-icon">&#x1F468;&#x200D;&#x1F680;</span>
+                            <h3>3. TRIPULACIÓN Y OPERACIONES</h3>
+                        </div>
+                        <p>Organizados en <strong>4 Módulos de Vuelo</strong>:</p>
+                        <div class="briefing-roles-pills">
+                            <span class="role-pill"><strong>Alfa (MOD 1):</strong> CP0 &rarr; CP1 [Rumbo SUR &darr;]</span>
+                            <span class="role-pill"><strong>Beta (MOD 2):</strong> CP1 &rarr; CP2</span>
+                            <span class="role-pill"><strong>Gamma (MOD 3):</strong> CP2 &rarr; CP3 [Muestreo]</span>
+                            <span class="role-pill"><strong>Delta (MOD 4):</strong> CP3 &rarr; Meta CP4</span>
+                        </div>
+                        <p style="margin-top: 4px; font-size: 11px; color: #94a3b8;">
+                            <strong>Comandos:</strong> <code>AVANZAR()</code>, <code>GIRAR_DER()</code>, <code>GIRAR_IZQ()</code>, <code>SCAN()</code>, <code>LOOP(n)</code>.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <footer class="modal-card-footer">
+                <div class="briefing-footer-left">
+                    <label class="modal-checkbox-label">
+                        <input type="checkbox" id="chk-dont-show-briefing"> No abrir automáticamente al iniciar
+                    </label>
+                </div>
+                <div class="briefing-footer-actions">
+                    <a href="fichas-imprimibles.html" target="_blank" class="modal-btn-secondary">
+                        &#x1F5B6;&#xFE0F; ABRIR FICHAS EN PAPEL
+                    </a>
+                    <button type="button" class="modal-btn-primary" id="btn-start-simulation">
+                        &#x1F680; ACCEDER A LA CONSOLA DE VUELO
+                    </button>
+                </div>
+            </footer>
+        </div>
+    </div>
+
+    <!-- MISSION SUCCESS REPORT MODAL -->
+    <div id="modal-success" class="tactical-modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="success-title">
+        <div class="tactical-modal-card success-card">
+            <header class="modal-card-header success-header">
+                <div class="modal-brand-group">
+                    <span class="modal-badge-agency success-badge">&#x1F6F0;&#xFE0F; CONTROL DE VUELO HEFESTO // TRANSMISIÓN OFICIAL CONFIRMADA</span>
+                    <h2 id="success-title" class="modal-title success-glow-title">&#x1F3C6; ¡MISIÓN CUMPLIDA CON ÉXITO!</h2>
+                    <span id="success-mission-name" class="modal-subtitle">NIVEL 1: CORREDOR CON OBSTÁCULOS</span>
+                </div>
+                <button type="button" class="modal-close-btn" id="btn-close-success" title="Cerrar reporte">&times;</button>
+            </header>
+
+            <div class="modal-card-body">
+                <div class="success-top-summary">
+                    <div class="success-rank-container">
+                        <span class="rank-eyebrow">DISTINCIÓN OFICIAL</span>
+                        <div id="success-rank-badge" class="success-rank-badge rank-oro">
+                            <span class="rank-icon">&#x1F947;</span>
+                            <span class="rank-text">RANGO ORO</span>
+                        </div>
+                    </div>
+                    <div class="success-score-container">
+                        <span class="score-eyebrow">PUNTUACIÓN DE TELEMETRÍA</span>
+                        <div id="success-score-number" class="success-score-number">1,450 <span class="pts-label">PTS</span></div>
+                    </div>
+                </div>
+
+                <!-- Terminal Typewriter Readout -->
+                <div class="terminal-readout-card">
+                    <div class="terminal-readout-header">
+                        <span class="terminal-dot green-dot"></span>
+                        <span class="terminal-title">TELEMETRY DECODER // BASE HEFESTO-1</span>
+                    </div>
+                    <div class="terminal-readout-body">
+                        <p id="success-terminal-text" class="typewriter-text"></p>
+                    </div>
+                </div>
+
+                <!-- 4 Metrics Grid -->
+                <div class="success-metrics-grid">
+                    <div class="metric-summary-card">
+                        <span class="m-card-icon">&#x1F4CD;</span>
+                        <div class="m-card-data">
+                            <span class="m-card-val" id="metric-summary-stages">4 / 4</span>
+                            <span class="m-card-lbl">RELEVOS CERTIFICADOS</span>
+                        </div>
+                    </div>
+                    <div class="metric-summary-card">
+                        <span class="m-card-icon">&#x1F48E;</span>
+                        <div class="m-card-data">
+                            <span class="m-card-val" id="metric-summary-rocks">0 MUESTRAS</span>
+                            <span class="m-card-lbl">GEODAS EXTRAÍDAS</span>
+                        </div>
+                    </div>
+                    <div class="metric-summary-card">
+                        <span class="m-card-icon">&#x26A1;</span>
+                        <div class="m-card-data">
+                            <span class="m-card-val" id="metric-summary-energy">0 CÉLULAS</span>
+                            <span class="m-card-lbl">ENERGÍA RECARGADA</span>
+                        </div>
+                    </div>
+                    <div class="metric-summary-card">
+                        <span class="m-card-icon">&#x1F4BE;</span>
+                        <div class="m-card-data">
+                            <span class="m-card-val" id="metric-summary-memory">+200 PTS</span>
+                            <span class="m-card-lbl">EFICIENCIA DE MEMORIA</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <footer class="modal-card-footer">
+                <div class="briefing-footer-left">
+                    <a href="fichas-imprimibles.html" target="_blank" class="modal-btn-secondary" style="font-size: 11px;">
+                        &#x1F5B6;&#xFE0F; VER FICHAS IMPRIMIBLES
+                    </a>
+                </div>
+                <div class="briefing-footer-actions">
+                    <button type="button" class="modal-btn-secondary" id="btn-replay-level">
+                        &#x21BA; REINTENTAR NIVEL
+                    </button>
+                    <button type="button" class="modal-btn-primary success-primary-btn" id="btn-next-level">
+                        SIGUIENTE NIVEL &#x27A4;
+                    </button>
+                </div>
+            </footer>
+        </div>
+    </div>
 
     <script src="js/parser.js"></script>
     <script src="js/scene3d.js"></script>

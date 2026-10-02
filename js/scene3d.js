@@ -523,6 +523,31 @@ class TacticalScene {
             padRingMesh.position.set(0, 0.085, 0);
             beaconGroup.add(padRingMesh);
 
+            const turntableGroup = new THREE.Group();
+            turntableGroup.position.set(0, 0.06, 0);
+
+            const turntableGeo = new THREE.CylinderGeometry(0.8, 0.85, 0.08, 20);
+            const turntableMat = new THREE.MeshStandardMaterial({
+                color: isBase ? 0x243247 : 0x162235,
+                metalness: 0.85,
+                roughness: 0.25
+            });
+            const turntableBase = new THREE.Mesh(turntableGeo, turntableMat);
+            turntableGroup.add(turntableBase);
+
+            const guideGeo = new THREE.BoxGeometry(0.08, 0.02, 0.55);
+            const guideMat = new THREE.MeshBasicMaterial({
+                color: def.color,
+                transparent: true,
+                opacity: 0.85
+            });
+            const guideMesh = new THREE.Mesh(guideGeo, guideMat);
+            guideMesh.position.set(0, 0.041, 0);
+            turntableGroup.add(guideMesh);
+
+            beaconGroup.add(turntableGroup);
+            const turntableMesh = turntableGroup;
+
             if (isBase) {
                 const cornerLedOffsets = [
                     [-1.1, -1.1],
@@ -628,6 +653,7 @@ class TacticalScene {
                     ring: null,
                     beam: null,
                     padRing: padRingMesh,
+                    turntable: turntableMesh,
                     flagGroup: flagGroup,
                     labelSprite: labelSprite,
                     status: 'BASE',
@@ -704,6 +730,7 @@ class TacticalScene {
                 ring: ringMesh,
                 beam: beamMesh,
                 padRing: padRingMesh,
+                turntable: turntableMesh,
                 flagGroup: null,
                 labelSprite: labelSprite,
                 status: 'STANDBY',
@@ -824,29 +851,68 @@ class TacticalScene {
         let coreMesh = null;
 
         if (type === 'PYLON') {
-            const baseGeo = new THREE.CylinderGeometry(0.7, 0.95, 0.35, 6);
-            const baseMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, metalness: 0.8, roughness: 0.3 });
+            const baseGeo = new THREE.CylinderGeometry(0.85, 1.15, 0.22, 7);
+            const baseMat = new THREE.MeshStandardMaterial({
+                color: 0x1e293b,
+                roughness: 0.95,
+                metalness: 0.1,
+                flatShading: true
+            });
             const baseMesh = new THREE.Mesh(baseGeo, baseMat);
-            baseMesh.position.y = 0.18;
+            baseMesh.position.y = 0.11;
             group.add(baseMesh);
 
-            const coreGeo = new THREE.OctahedronGeometry(0.45, 0);
-            const coreMat = new THREE.MeshStandardMaterial({
-                color: 0xef4444,
-                emissive: 0xef4444,
-                emissiveIntensity: 1.6,
-                roughness: 0.2
+            const hazardRingGeo = new THREE.RingGeometry(0.95, 1.18, 14);
+            const hazardRingMat = new THREE.MeshBasicMaterial({
+                color: 0xd97706,
+                transparent: true,
+                opacity: 0.45,
+                side: THREE.DoubleSide
             });
-            coreMesh = new THREE.Mesh(coreGeo, coreMat);
-            coreMesh.position.y = 0.9;
+            const hazardRingMesh = new THREE.Mesh(hazardRingGeo, hazardRingMat);
+            hazardRingMesh.rotation.x = -Math.PI / 2;
+            hazardRingMesh.position.y = 0.02;
+            group.add(hazardRingMesh);
+
+            const mainPeakGeo = new THREE.ConeGeometry(0.68, 1.35, 6);
+            const mainPeakMat = new THREE.MeshStandardMaterial({
+                color: 0x334155,
+                emissive: 0xef4444,
+                emissiveIntensity: 0.05,
+                roughness: 0.92,
+                metalness: 0.15,
+                flatShading: true
+            });
+            coreMesh = new THREE.Mesh(mainPeakGeo, mainPeakMat);
+            coreMesh.position.set(0.06, 0.72, -0.06);
+            coreMesh.rotation.z = 0.07;
+            coreMesh.rotation.x = -0.05;
             group.add(coreMesh);
 
-            const ringGeo = new THREE.TorusGeometry(0.65, 0.04, 8, 16);
-            const ringMat = new THREE.MeshBasicMaterial({ color: 0xff0055, wireframe: true });
-            const ringMesh = new THREE.Mesh(ringGeo, ringMat);
-            ringMesh.rotation.x = Math.PI / 2;
-            ringMesh.position.y = 0.75;
-            group.add(ringMesh);
+            const secondaryPeakGeo = new THREE.ConeGeometry(0.46, 0.95, 5);
+            const secondaryPeakMat = new THREE.MeshStandardMaterial({
+                color: 0x475569,
+                roughness: 0.95,
+                metalness: 0.1,
+                flatShading: true
+            });
+            const secondaryPeakMesh = new THREE.Mesh(secondaryPeakGeo, secondaryPeakMat);
+            secondaryPeakMesh.position.set(-0.36, 0.52, 0.24);
+            secondaryPeakMesh.rotation.z = -0.12;
+            secondaryPeakMesh.rotation.x = 0.08;
+            group.add(secondaryPeakMesh);
+
+            const rockOutcropGeo = new THREE.DodecahedronGeometry(0.36, 0);
+            const rockOutcropMat = new THREE.MeshStandardMaterial({
+                color: 0x1e293b,
+                roughness: 0.96,
+                metalness: 0.05,
+                flatShading: true
+            });
+            const rockOutcropMesh = new THREE.Mesh(rockOutcropGeo, rockOutcropMat);
+            rockOutcropMesh.position.set(0.42, 0.28, 0.32);
+            rockOutcropMesh.rotation.set(0.4, 0.6, 0.2);
+            group.add(rockOutcropMesh);
         } else if (type === 'MINE') {
             const baseGeo = new THREE.CylinderGeometry(0.5, 0.65, 0.12, 12);
             const baseMat = new THREE.MeshStandardMaterial({ color: 0x0f172a, metalness: 0.9, roughness: 0.2 });
@@ -923,28 +989,104 @@ class TacticalScene {
             coreMesh.position.y = 0.35;
             group.add(coreMesh);
         } else if (type === 'ANOMALY') {
-            const fissureGeo = new THREE.RingGeometry(0.12, 0.65, 8);
-            const fissureMat = new THREE.MeshStandardMaterial({
-                color: 0x18181b,
-                roughness: 0.95,
+            const outerShape = new THREE.Shape();
+            outerShape.moveTo(-0.75, -0.06);
+            outerShape.lineTo(-0.48, 0.26);
+            outerShape.lineTo(-0.22, 0.08);
+            outerShape.lineTo(-0.02, 0.36);
+            outerShape.lineTo(0.26, 0.12);
+            outerShape.lineTo(0.54, 0.32);
+            outerShape.lineTo(0.78, 0.04);
+            outerShape.lineTo(0.52, -0.22);
+            outerShape.lineTo(0.24, -0.06);
+            outerShape.lineTo(-0.04, -0.34);
+            outerShape.lineTo(-0.32, -0.12);
+            outerShape.lineTo(-0.56, -0.26);
+            outerShape.closePath();
+
+            const outerGeo = new THREE.ShapeGeometry(outerShape);
+            const outerMat = new THREE.MeshStandardMaterial({
+                color: 0x111827,
+                roughness: 0.96,
+                metalness: 0.1,
                 side: THREE.DoubleSide
             });
-            const fissureMesh = new THREE.Mesh(fissureGeo, fissureMat);
-            fissureMesh.rotation.x = -Math.PI / 2;
-            fissureMesh.position.y = 0.035;
-            group.add(fissureMesh);
+            const outerMesh = new THREE.Mesh(outerGeo, outerMat);
+            outerMesh.rotation.x = -Math.PI / 2;
+            outerMesh.position.y = 0.015;
+            group.add(outerMesh);
 
-            const coreGeo = new THREE.OctahedronGeometry(0.22, 0);
-            const coreMat = new THREE.MeshStandardMaterial({
-                color: 0xa855f7,
-                emissive: 0xa855f7,
-                emissiveIntensity: 2.2,
-                transparent: true,
-                opacity: 0.85
+            const innerShape = new THREE.Shape();
+            innerShape.moveTo(-0.68, -0.02);
+            innerShape.lineTo(-0.42, 0.18);
+            innerShape.lineTo(-0.18, 0.04);
+            innerShape.lineTo(0.02, 0.24);
+            innerShape.lineTo(0.22, 0.08);
+            innerShape.lineTo(0.48, 0.22);
+            innerShape.lineTo(0.68, 0.02);
+            innerShape.lineTo(0.44, -0.14);
+            innerShape.lineTo(0.18, -0.02);
+            innerShape.lineTo(-0.02, -0.22);
+            innerShape.lineTo(-0.26, -0.08);
+            innerShape.lineTo(-0.48, -0.18);
+            innerShape.closePath();
+
+            const innerGeo = new THREE.ShapeGeometry(innerShape);
+            const innerMat = new THREE.MeshStandardMaterial({
+                color: 0x030712,
+                roughness: 0.99,
+                side: THREE.DoubleSide
             });
-            coreMesh = new THREE.Mesh(coreGeo, coreMat);
-            coreMesh.position.y = 0.15;
+            const innerMesh = new THREE.Mesh(innerGeo, innerMat);
+            innerMesh.rotation.x = -Math.PI / 2;
+            innerMesh.position.y = 0.025;
+            group.add(innerMesh);
+
+            const riftShape = new THREE.Shape();
+            riftShape.moveTo(-0.62, 0.0);
+            riftShape.lineTo(-0.38, 0.12);
+            riftShape.lineTo(-0.12, 0.02);
+            riftShape.lineTo(0.08, 0.16);
+            riftShape.lineTo(0.32, 0.04);
+            riftShape.lineTo(0.62, 0.02);
+            riftShape.lineTo(0.34, -0.02);
+            riftShape.lineTo(0.06, 0.08);
+            riftShape.lineTo(-0.14, -0.04);
+            riftShape.lineTo(-0.36, 0.04);
+            riftShape.closePath();
+
+            const riftGeo = new THREE.ShapeGeometry(riftShape);
+            const riftMat = new THREE.MeshStandardMaterial({
+                color: 0xc084fc,
+                emissive: 0x9333ea,
+                emissiveIntensity: 2.8,
+                roughness: 0.2,
+                side: THREE.DoubleSide
+            });
+            coreMesh = new THREE.Mesh(riftGeo, riftMat);
+            coreMesh.rotation.x = -Math.PI / 2;
+            coreMesh.position.y = 0.035;
             group.add(coreMesh);
+
+            const debrisCoords = [
+                { x: -0.42, z: -0.28, s: 0.14 },
+                { x: 0.38, z: 0.28, s: 0.16 },
+                { x: -0.15, z: 0.32, s: 0.12 },
+                { x: 0.52, z: -0.18, s: 0.15 }
+            ];
+            const debrisMat = new THREE.MeshStandardMaterial({
+                color: 0x1e293b,
+                roughness: 0.95,
+                metalness: 0.1,
+                flatShading: true
+            });
+            for (const dc of debrisCoords) {
+                const rockGeo = new THREE.DodecahedronGeometry(dc.s, 0);
+                const rockMesh = new THREE.Mesh(rockGeo, debrisMat);
+                rockMesh.position.set(dc.x, 0.08, dc.z);
+                rockMesh.rotation.set(dc.x * 2, dc.z * 2, 0.5);
+                group.add(rockMesh);
+            }
         }
 
         this.entitiesGroup.add(group);
@@ -2233,6 +2375,76 @@ class TacticalScene {
     }
 
     /**
+     * Executes cinematic docking elevator sequence: raises rover on beacon turntable, rotates to target heading, and lowers.
+     * @param {number} targetHeading
+     * @param {string} [beaconId]
+     * @returns {Promise<void>}
+     */
+    async tweenDockingElevator(targetHeading, beaconId) {
+        return new Promise((resolve) => {
+            const startAngle = this.roverGroup.rotation.y;
+            const targetAngle = this.headingToAngle(targetHeading);
+
+            let diff = targetAngle - startAngle;
+            while (diff < -Math.PI) diff += Math.PI * 2;
+            while (diff > Math.PI) diff -= Math.PI * 2;
+
+            const finalAngle = startAngle + diff;
+            const duration = 1200 / this.stepSpeedMultiplier;
+            const startTime = performance.now();
+            const liftHeight = 0.55;
+
+            const beaconRecord = beaconId ? this.beaconObjects.get(beaconId) : null;
+            const turntable = beaconRecord ? beaconRecord.turntable : null;
+
+            if (turntable) {
+                turntable.rotation.y = startAngle;
+            }
+
+            const step = (now) => {
+                const elapsed = now - startTime;
+                const progress = Math.min(elapsed / duration, 1.0);
+
+                const verticalPhase = Math.sin(progress * Math.PI);
+                const currentLift = verticalPhase * liftHeight;
+                this.roverGroup.position.y = currentLift;
+
+                if (turntable) {
+                    turntable.position.y = 0.06 + currentLift;
+                }
+
+                const rotProgress = progress < 0.15
+                    ? 0
+                    : progress > 0.85
+                        ? 1
+                        : (progress - 0.15) / 0.7;
+                const easedRot = rotProgress * rotProgress * (3 - 2 * rotProgress);
+                const currentAngle = startAngle + diff * easedRot;
+                this.roverGroup.rotation.y = currentAngle;
+
+                if (turntable) {
+                    turntable.rotation.y = currentAngle;
+                }
+
+                if (progress < 1.0) {
+                    requestAnimationFrame(step);
+                } else {
+                    this.roverGroup.position.y = 0;
+                    this.roverGroup.rotation.y = finalAngle;
+                    if (turntable) {
+                        turntable.position.y = 0.06;
+                        turntable.rotation.y = finalAngle;
+                    }
+                    this.currentHeading = ((targetHeading % 4) + 4) % 4;
+                    resolve();
+                }
+            };
+
+            requestAnimationFrame(step);
+        });
+    }
+
+    /**
      * Illuminates a beacon when reached, creating an expanding shockwave ring and locking illuminated status.
      * @param {string} beaconId
      */
@@ -2434,11 +2646,9 @@ class TacticalScene {
                     entity.coreMesh.position.y = 0.8 + Math.sin(time * 3 + entity.x) * 0.12;
                 } else if (entity.type === 'ROCK_SAMPLE') {
                     entity.coreMesh.rotation.y += delta * 1.2;
-                } else if (entity.type === 'ANOMALY') {
-                    entity.coreMesh.rotation.y += delta * 2.0;
-                    entity.coreMesh.scale.setScalar(0.9 + Math.sin(time * 4 + entity.x) * 0.15);
-                } else if (entity.type === 'PYLON') {
-                    entity.coreMesh.rotation.y += delta * 1.8;
+                } else if (entity.type === 'ANOMALY' && entity.coreMesh.material) {
+                    const pulse = 2.4 + Math.sin(time * 4 + entity.x) * 0.9;
+                    entity.coreMesh.material.emissiveIntensity = pulse;
                 } else if (entity.type === 'MINE' && entity.coreMesh.material) {
                     const pulse = 1.6 + Math.sin(time * 6) * 0.8;
                     entity.coreMesh.material.emissiveIntensity = pulse;

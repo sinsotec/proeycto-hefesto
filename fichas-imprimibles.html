@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fichas de Trabajo Tácticas - Impresión de Misiones</title>
+    <title>PROYECTO HEFESTO — Fichas de Navegación Autónoma y Telemetría</title>
     <style>
         :root {
             --print-black: #111827;
@@ -113,26 +113,28 @@
 
         /* Printable Sheets Container */
         .sheets-container {
-            max-width: 900px;
-            margin: 24px auto;
+            max-width: 860px;
+            margin: 20px auto;
             padding: 0 16px 40px;
             display: flex;
             flex-direction: column;
-            gap: 32px;
+            gap: 28px;
         }
 
-        /* Individual Worksheet (A4 / Letter Page) */
+        /* Individual Worksheet (Calibrated for Letter 8.5x11 in / 216x279 mm) */
         .worksheet-page {
             background: #ffffff;
             width: 100%;
-            min-height: 1100px;
-            padding: 24px 28px;
+            max-width: 820px;
+            padding: 12px 16px;
             border-radius: 4px;
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
             position: relative;
             display: flex;
             flex-direction: column;
-            gap: 16px;
+            justify-content: space-between;
+            gap: 6px;
+            box-sizing: border-box;
         }
 
         /* Header of the Worksheet */
@@ -141,93 +143,98 @@
             justify-content: space-between;
             align-items: flex-start;
             border-bottom: 2px solid var(--print-black);
-            padding-bottom: 10px;
-            gap: 12px;
+            padding-bottom: 4px;
+            gap: 8px;
         }
 
         .sheet-logo-group {
             display: flex;
             flex-direction: column;
-            gap: 2px;
+            gap: 1.5px;
         }
 
         .sheet-system-title {
-            font-size: 16px;
+            font-size: 13.5px;
             font-weight: 900;
-            letter-spacing: 0.08em;
+            letter-spacing: 0.06em;
             color: var(--print-black);
             text-transform: uppercase;
+            line-height: 1.15;
         }
 
         .sheet-sub-title {
-            font-size: 11px;
+            font-size: 9.5px;
             font-weight: 700;
             color: var(--accent-cyan);
-            letter-spacing: 0.05em;
+            letter-spacing: 0.04em;
             text-transform: uppercase;
         }
 
         .sheet-mission-badge {
             background: var(--print-gray-subtle);
             border: 1.5px solid var(--print-gray-dark);
-            padding: 4px 10px;
+            padding: 2px 8px;
             border-radius: 4px;
             text-align: right;
-            font-size: 11px;
+            font-size: 9.5px;
             font-weight: 800;
+            line-height: 1.2;
+            flex-shrink: 0;
         }
 
         /* Meta fields: Student, Team, Role */
         .sheet-meta-grid {
             display: grid;
             grid-template-columns: 1.8fr 1.4fr 1fr;
-            gap: 10px;
+            gap: 4px 8px;
             background: var(--print-gray-subtle);
             border: 1px solid var(--print-gray-light);
-            border-radius: 6px;
-            padding: 8px 12px;
-            font-size: 12px;
+            border-radius: 4px;
+            padding: 4px 8px;
+            font-size: 10px;
         }
 
         .meta-field {
             display: flex;
             align-items: center;
-            gap: 6px;
+            gap: 4px;
         }
 
         .meta-label {
             font-weight: 800;
             color: var(--print-gray-dark);
-            font-size: 11px;
+            font-size: 9.5px;
             text-transform: uppercase;
+            white-space: nowrap;
         }
 
         .meta-line {
             flex: 1;
             border-bottom: 1.5px dotted #9ca3af;
-            height: 18px;
+            height: 14px;
         }
 
         .meta-roles-row {
             grid-column: 1 / -1;
             display: flex;
             align-items: center;
-            gap: 14px;
-            padding-top: 4px;
+            gap: 10px;
+            padding-top: 2px;
             border-top: 1px dashed var(--print-gray-light);
-            font-size: 11px;
+            font-size: 9.5px;
         }
 
         .role-check {
             display: flex;
             align-items: center;
-            gap: 4px;
+            gap: 3px;
             font-weight: 700;
+            white-space: nowrap;
         }
 
         .role-box {
-            width: 13px;
-            height: 13px;
+            width: 10px;
+            height: 10px;
             border: 1.5px solid var(--print-gray-dark);
             border-radius: 2px;
             display: inline-block;
@@ -236,47 +243,49 @@
         /* Main Workspace: Grid + Code Section */
         .sheet-main-content {
             display: grid;
-            grid-template-columns: 1.15fr 0.85fr;
-            gap: 18px;
+            grid-template-columns: 1.08fr 0.92fr;
+            gap: 10px;
             flex: 1;
+            align-items: start;
         }
 
         /* Tactical Grid Container */
         .grid-panel {
             display: flex;
             flex-direction: column;
-            gap: 8px;
+            gap: 3px;
         }
 
         .panel-heading {
-            font-size: 11px;
+            font-size: 9.5px;
             font-weight: 800;
             text-transform: uppercase;
-            letter-spacing: 0.05em;
+            letter-spacing: 0.04em;
             color: var(--print-gray-dark);
             display: flex;
             justify-content: space-between;
             align-items: center;
             border-bottom: 1px solid var(--print-gray-light);
-            padding-bottom: 3px;
+            padding-bottom: 2px;
         }
 
         .tactical-grid-wrapper {
             position: relative;
             background: #ffffff;
-            border: 2px solid var(--print-black);
+            border: 1.5px solid var(--print-black);
             border-radius: 4px;
-            padding: 8px;
+            padding: 3px;
             display: flex;
             flex-direction: column;
             align-items: center;
+            justify-content: center;
         }
 
         /* SVG Grid Styling */
         .tactical-grid-svg {
             width: 100%;
             height: auto;
-            max-height: 480px;
+            max-height: 290px;
             display: block;
         }
 
@@ -284,24 +293,26 @@
         .grid-legend-row {
             display: flex;
             flex-wrap: wrap;
-            gap: 8px 12px;
-            font-size: 10px;
+            gap: 2px 7px;
+            font-size: 8px;
             font-weight: 700;
-            padding: 6px 8px;
+            padding: 2.5px 5px;
             background: var(--print-gray-subtle);
             border: 1px solid var(--print-gray-light);
-            border-radius: 4px;
-            margin-top: 4px;
+            border-radius: 3px;
+            margin-top: 2px;
+            line-height: 1.25;
         }
 
         .legend-item {
             display: flex;
             align-items: center;
-            gap: 4px;
+            gap: 3px;
+            white-space: nowrap;
         }
 
         .legend-symbol {
-            font-size: 12px;
+            font-size: 9.5px;
             font-weight: 900;
         }
 
@@ -309,21 +320,20 @@
         .code-panel {
             display: flex;
             flex-direction: column;
-            gap: 10px;
+            gap: 3px;
         }
 
         .heading-compass-badge {
             display: inline-flex;
             align-items: center;
-            gap: 6px;
+            gap: 4px;
             background: #ffffff;
             border: 1px solid var(--print-gray-light);
-            border-radius: 4px;
-            padding: 2px 7px;
-            font-size: 10px;
+            border-radius: 3px;
+            padding: 1.5px 5px;
+            font-size: 8.5px;
             font-weight: 800;
             color: var(--print-gray-dark);
-            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
         }
 
         .heading-compass-badge svg {
@@ -334,23 +344,24 @@
         .mission-params-card {
             background: #ffffff;
             border: 1.5px solid var(--print-black);
-            border-radius: 6px;
-            padding: 7px 9px;
+            border-radius: 4px;
+            padding: 4px 6px;
             display: flex;
             flex-direction: column;
-            gap: 6px;
+            gap: 3px;
         }
 
         .params-route-bar {
             display: flex;
             align-items: center;
-            gap: 6px;
+            gap: 4px;
             background: var(--print-gray-subtle);
             border: 1px solid var(--print-gray-light);
-            border-radius: 4px;
-            padding: 3px 6px;
-            font-size: 9.5px;
+            border-radius: 3px;
+            padding: 2px 4px;
+            font-size: 8px;
             flex-wrap: wrap;
+            line-height: 1.2;
         }
 
         .route-title {
@@ -365,20 +376,42 @@
             color: #0369a1;
         }
 
+        .stage-routes-list {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5px 6px;
+            font-size: 7.5px;
+            font-family: monospace;
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 2px;
+            padding: 2px 4px;
+            line-height: 1.2;
+        }
+
+        .stage-route-item {
+            color: #334155;
+            white-space: nowrap;
+        }
+
+        .stage-route-item b {
+            color: #0369a1;
+        }
+
         .params-slots-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 6px;
+            gap: 3px;
         }
 
         .param-slot {
             background: var(--print-gray-subtle);
             border: 1px solid var(--print-gray-light);
-            border-radius: 4px;
-            padding: 4px 6px;
+            border-radius: 3px;
+            padding: 2px 4px;
             display: flex;
             flex-direction: column;
-            gap: 3px;
+            gap: 1.5px;
         }
 
         .param-slot.slot-accent {
@@ -388,9 +421,9 @@
         }
 
         .slot-label {
-            font-size: 8.5px;
+            font-size: 7.2px;
             font-weight: 800;
-            letter-spacing: 0.04em;
+            letter-spacing: 0.03em;
             color: #4b5563;
             text-transform: uppercase;
             white-space: nowrap;
@@ -402,10 +435,10 @@
             justify-content: space-around;
             background: #ffffff;
             border: 1px solid #d1d5db;
-            border-radius: 3px;
-            padding: 2px 4px;
+            border-radius: 2px;
+            padding: 1px 3px;
             font-family: monospace;
-            font-size: 10.5px;
+            font-size: 9px;
             font-weight: 700;
             color: #111827;
         }
@@ -418,8 +451,8 @@
         .slot-line {
             display: inline-block;
             border-bottom: 1.5px solid #111827;
-            min-width: 22px;
-            height: 12px;
+            min-width: 18px;
+            height: 9px;
         }
 
         .slot-heading-selectors {
@@ -428,176 +461,300 @@
             justify-content: space-between;
             background: #ffffff;
             border: 1px solid #d1d5db;
-            border-radius: 3px;
-            padding: 2px 5px;
+            border-radius: 2px;
+            padding: 1px 3px;
         }
 
         .heading-opt {
             display: inline-flex;
             align-items: center;
-            gap: 2.5px;
+            gap: 2px;
             font-family: monospace;
-            font-size: 10.5px;
+            font-size: 8px;
             font-weight: 800;
             color: #1f2937;
             white-space: nowrap;
         }
 
         .heading-box {
-            width: 9px;
-            height: 9px;
-            border: 1.5px solid #4b5563;
-            border-radius: 2px;
+            width: 7.5px;
+            height: 7.5px;
+            border: 1px solid #4b5563;
+            border-radius: 1.5px;
             display: inline-block;
+        }
+
+        .heading-box.checked {
+            background: #0284c7;
+            color: #ffffff;
+            border-color: #0284c7;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 6.5px;
+            line-height: 1;
+            font-weight: 900;
+        }
+
+        .heading-opt.active-heading {
+            background: #e0f2fe;
+            border: 1px solid #0284c7;
+            border-radius: 2px;
+            padding: 0.5px 3px;
+            color: #0369a1;
+            font-weight: 800;
         }
 
         .slot-limit-badge {
             background: #111827;
             color: #ffffff;
             font-family: monospace;
-            font-size: 10.5px;
+            font-size: 8.5px;
             font-weight: 800;
             text-align: center;
-            padding: 3px 6px;
-            border-radius: 3px;
-            letter-spacing: 0.05em;
+            padding: 2px 4px;
+            border-radius: 2px;
+            letter-spacing: 0.04em;
+        }
+
+        /* Kinematics & Relative Turns Guide */
+        .kinematics-guide-box {
+            background: #ffffff;
+            border: 1.5px solid var(--print-black);
+            border-radius: 4px;
+            padding: 3px 5px;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            font-size: 7.5px;
+            margin-top: 2px;
+        }
+
+        .guide-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-weight: 800;
+            color: #111827;
+            font-size: 7.5px;
+            border-bottom: 1px solid var(--print-gray-light);
+            padding-bottom: 1.5px;
+            text-transform: uppercase;
+        }
+
+        .guide-sub {
+            color: #b91c1c;
+            font-size: 6.5px;
+            font-weight: 700;
+        }
+
+        .guide-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2px 3.5px;
+        }
+
+        .guide-cell {
+            background: var(--print-gray-subtle);
+            border: 1px solid var(--print-gray-light);
+            border-radius: 2px;
+            padding: 1.5px 3.5px;
+            display: flex;
+            flex-direction: column;
+            gap: 1px;
+            font-size: 7.2px;
+            line-height: 1.2;
+        }
+
+        .guide-cell.cell-highlight {
+            background: #eff6ff;
+            border-color: #38bdf8;
+        }
+
+        .cell-dir {
+            font-weight: 800;
+            color: #1e3a8a;
+            font-size: 7.5px;
+        }
+
+        .cell-action {
+            color: #374151;
+            font-size: 7px;
+        }
+
+        .cell-action code, .cell-turn code {
+            font-family: monospace;
+            font-weight: 700;
+            color: #0f172a;
+            background: #ffffff;
+            padding: 0.5px 2px;
+            border: 0.5px solid #cbd5e1;
+            border-radius: 2px;
+        }
+
+        .cell-turn {
+            color: #1e293b;
+            font-size: 7px;
         }
 
         /* Table of Instructions */
         .instruction-table {
             width: 100%;
             border-collapse: collapse;
-            font-size: 11px;
+            font-size: 9px;
         }
 
         .instruction-table th {
             background: var(--print-gray-dark);
             color: #ffffff;
-            padding: 4px 6px;
+            padding: 2px 4px;
             font-weight: 800;
             text-align: left;
-            font-size: 10px;
+            font-size: 8px;
             text-transform: uppercase;
         }
 
         .instruction-table td {
             border: 1px solid #d1d5db;
-            padding: 4px 6px;
-            height: 25px;
+            padding: 1px 4px;
+            height: 17px;
             vertical-align: middle;
         }
 
         .instruction-table td.col-line {
-            width: 28px;
+            width: 22px;
             text-align: center;
             font-family: monospace;
             font-weight: 800;
             color: #6b7280;
             background: var(--print-gray-subtle);
+            font-size: 8px;
         }
 
         .instruction-table td.col-command {
             font-family: 'Courier New', Courier, monospace;
             font-weight: 700;
+            font-size: 9px;
         }
 
         .instruction-table td.col-purpose {
-            font-size: 10px;
+            font-size: 7.5px;
             color: #4b5563;
+        }
+
+        .syntax-box {
+            font-size: 9.5px;
+            color: #4b5563;
+            background: #f3f4f6;
+            border-left: 3px solid #0891b2;
+            padding: 3px 6px;
+            border-radius: 2px;
+            line-height: 1.25;
         }
 
         /* Bottom Row: Score Estimator & Sign-off */
         .sheet-footer-row {
             display: grid;
             grid-template-columns: 1.15fr 0.85fr;
-            gap: 18px;
+            gap: 10px;
             margin-top: auto;
             border-top: 1.5px solid var(--print-black);
-            padding-top: 10px;
-            font-size: 11px;
+            padding-top: 4px;
+            font-size: 9px;
         }
 
         .scoring-card {
             display: flex;
             flex-direction: column;
-            gap: 4px;
+            gap: 2px;
         }
 
         .scoring-pills-row {
             display: flex;
-            gap: 6px;
+            gap: 3px;
             flex-wrap: wrap;
         }
 
         .score-pill {
             background: var(--print-gray-subtle);
             border: 1px solid #d1d5db;
-            border-radius: 4px;
-            padding: 3px 6px;
-            font-size: 10px;
+            border-radius: 3px;
+            padding: 1px 4px;
+            font-size: 8px;
             font-weight: 700;
         }
 
         .approval-card {
             border: 1px dashed var(--print-gray-dark);
-            border-radius: 4px;
-            padding: 6px 10px;
+            border-radius: 3px;
+            padding: 3px 6px;
             display: flex;
             flex-direction: column;
             justify-content: space-between;
-            font-size: 10px;
+            font-size: 8px;
         }
 
         .approval-line {
             border-bottom: 1px solid #9ca3af;
-            height: 16px;
-            margin-top: 6px;
+            height: 11px;
+            margin-top: 2px;
         }
 
         /* Cutout Stamps Section */
         .cutouts-sheet {
             display: flex;
             flex-direction: column;
-            gap: 14px;
+            gap: 8px;
         }
 
         .cutout-grid {
             display: grid;
             grid-template-columns: repeat(6, 1fr);
-            gap: 10px;
-            padding: 12px;
-            border: 2px dashed #9ca3af;
-            border-radius: 6px;
+            gap: 6px;
+            padding: 6px;
+            border: 1.5px dashed #9ca3af;
+            border-radius: 4px;
         }
 
         .cutout-cell {
             border: 1px dashed #6b7280;
-            padding: 8px 4px;
+            padding: 4px 2px;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             text-align: center;
-            gap: 4px;
-            min-height: 64px;
-            border-radius: 4px;
+            gap: 2px;
+            min-height: 48px;
+            border-radius: 3px;
         }
 
         .cutout-icon {
-            font-size: 20px;
+            font-size: 16px;
         }
 
         .cutout-label {
-            font-size: 9px;
+            font-size: 8px;
             font-weight: 800;
             text-transform: uppercase;
         }
 
-        /* Printable Media Rules */
+        /* Printable Media Rules (Calibrated for Letter 216x279mm) */
+        @page {
+            size: letter;
+            margin: 6mm 8mm;
+        }
+
         @media print {
-            body {
+            html, body {
                 background: #ffffff !important;
                 color: #000000 !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                width: 100% !important;
+                height: 100% !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
             }
 
             .screen-toolbar {
@@ -609,21 +766,561 @@
                 margin: 0 !important;
                 padding: 0 !important;
                 gap: 0 !important;
+                display: block !important;
             }
 
             .worksheet-page {
                 box-shadow: none !important;
                 border-radius: 0 !important;
-                padding: 12mm 14mm !important;
-                min-height: 100vh !important;
+                border: none !important;
+                padding: 0 !important;
+                margin: 0 !important;
+                width: 100% !important;
+                height: 100% !important;
+                max-height: 264mm !important;
                 page-break-after: always !important;
+                page-break-inside: avoid !important;
                 break-after: page !important;
+                break-inside: avoid !important;
+                overflow: hidden !important;
+                display: flex !important;
+                flex-direction: column !important;
+                justify-content: space-between !important;
+                gap: 6px !important;
+                box-sizing: border-box !important;
             }
 
             .worksheet-page:last-child {
                 page-break-after: avoid !important;
                 break-after: avoid !important;
             }
+
+            .sheet-header {
+                padding-bottom: 3px !important;
+                border-bottom: 2px solid #000000 !important;
+            }
+
+            .sheet-system-title {
+                font-size: 13.5px !important;
+                font-weight: 900 !important;
+            }
+
+            .sheet-sub-title {
+                font-size: 9.5px !important;
+                font-weight: 700 !important;
+            }
+
+            .sheet-mission-badge {
+                padding: 2px 8px !important;
+                font-size: 9px !important;
+                font-weight: 800 !important;
+            }
+
+            .sheet-meta-grid {
+                padding: 5px 8px !important;
+                gap: 4px 10px !important;
+                font-size: 9px !important;
+                background: #f8fafc !important;
+                border: 1px solid #cbd5e1 !important;
+            }
+
+            .meta-label {
+                font-size: 8.5px !important;
+                font-weight: 800 !important;
+            }
+
+            .meta-line {
+                height: 15px !important;
+                border-bottom: 1.5px dotted #64748b !important;
+            }
+
+            .meta-roles-row {
+                font-size: 8.5px !important;
+                padding-top: 3px !important;
+                gap: 12px !important;
+            }
+
+            .role-box {
+                width: 11px !important;
+                height: 11px !important;
+                border-width: 1.5px !important;
+            }
+
+            .sheet-main-content {
+                display: grid !important;
+                grid-template-columns: 1.05fr 0.95fr !important;
+                gap: 10px !important;
+                flex: 1 !important;
+                align-items: stretch !important;
+            }
+
+            .grid-panel {
+                display: flex !important;
+                flex-direction: column !important;
+                justify-content: space-between !important;
+                gap: 3px !important;
+            }
+
+            .panel-heading {
+                font-size: 9px !important;
+                font-weight: 800 !important;
+                padding-bottom: 2px !important;
+            }
+
+            .heading-compass-badge {
+                padding: 2px 5px !important;
+                font-size: 8.5px !important;
+            }
+
+            .tactical-grid-wrapper {
+                padding: 3px !important;
+                border: 1.5px solid #000000 !important;
+                flex: 1 !important;
+                display: flex !important;
+                align-items: center !important;
+                justify-content: center !important;
+            }
+
+            .tactical-grid-svg {
+                width: 100% !important;
+                height: auto !important;
+                max-height: 360px !important;
+            }
+
+            .grid-legend-row {
+                padding: 2.5px 6px !important;
+                gap: 2px 7px !important;
+                font-size: 7.8px !important;
+                font-weight: 700 !important;
+                margin-top: 2px !important;
+            }
+
+            .legend-symbol {
+                font-size: 9.5px !important;
+            }
+
+            .kinematics-guide-box {
+                padding: 3px 5px !important;
+                gap: 2px !important;
+                margin-top: 2px !important;
+                border: 1.5px solid #000000 !important;
+            }
+
+            .guide-header {
+                font-size: 7.8px !important;
+                font-weight: 800 !important;
+                padding-bottom: 1.5px !important;
+            }
+
+            .guide-sub {
+                font-size: 6.8px !important;
+                font-weight: 700 !important;
+            }
+
+            .guide-grid {
+                gap: 2.5px 5px !important;
+            }
+
+            .guide-cell {
+                padding: 2.5px 4.5px !important;
+                font-size: 7.2px !important;
+                line-height: 1.25 !important;
+            }
+
+            .cell-dir {
+                font-size: 7.5px !important;
+                font-weight: 800 !important;
+            }
+
+            .cell-action, .cell-turn {
+                font-size: 7px !important;
+            }
+
+            .code-panel {
+                display: flex !important;
+                flex-direction: column !important;
+                justify-content: space-between !important;
+                gap: 3px !important;
+            }
+
+            .mission-params-card {
+                padding: 3.5px 6px !important;
+                gap: 2.5px !important;
+                border: 1.5px solid #000000 !important;
+            }
+
+            .params-route-bar {
+                padding: 2px 5px !important;
+                font-size: 7.8px !important;
+            }
+
+            .stage-routes-list {
+                padding: 2px 5px !important;
+                font-size: 7.2px !important;
+                gap: 1.5px 5px !important;
+            }
+
+            .params-slots-grid {
+                gap: 3px !important;
+            }
+
+            .param-slot {
+                padding: 2px 4px !important;
+                gap: 1.5px !important;
+            }
+
+            .slot-label {
+                font-size: 6.8px !important;
+                font-weight: 800 !important;
+            }
+
+            .slot-coord-pill {
+                font-size: 8.5px !important;
+                padding: 1px 3px !important;
+            }
+
+            .slot-heading-selectors {
+                padding: 1px 3px !important;
+            }
+
+            .heading-opt {
+                font-size: 7.5px !important;
+            }
+
+            .heading-box {
+                width: 8.5px !important;
+                height: 8.5px !important;
+            }
+
+            .slot-limit-badge {
+                font-size: 7.8px !important;
+                padding: 1.5px 4px !important;
+            }
+
+            .instruction-table {
+                font-size: 8.5px !important;
+                flex: 1 !important;
+            }
+
+            .instruction-table th {
+                padding: 2.5px 4px !important;
+                font-size: 7.8px !important;
+            }
+
+            .instruction-table td {
+                padding: 1.5px 4px !important;
+                height: 25px !important;
+                font-size: 8.5px !important;
+            }
+
+            .instruction-table td.col-line {
+                width: 24px !important;
+                font-size: 8.5px !important;
+                font-weight: 800 !important;
+            }
+
+            .syntax-box {
+                padding: 3px 6px !important;
+                font-size: 8px !important;
+                line-height: 1.25 !important;
+                border-left: 3px solid #0891b2 !important;
+            }
+
+            .sheet-footer-row {
+                padding-top: 4px !important;
+                margin-top: 3px !important;
+                gap: 10px !important;
+                font-size: 8px !important;
+                border-top: 1.5px solid #000000 !important;
+            }
+
+            .scoring-pills-row {
+                gap: 3px !important;
+            }
+
+            .score-pill {
+                padding: 1.5px 5px !important;
+                font-size: 7.5px !important;
+                font-weight: 700 !important;
+            }
+
+            .approval-card {
+                padding: 3px 6px !important;
+                font-size: 7.5px !important;
+            }
+
+            .approval-line {
+                height: 13px !important;
+                margin-top: 3px !important;
+            }
+
+            .cutout-grid {
+                gap: 5px !important;
+                padding: 5px !important;
+            }
+
+            .cutout-cell {
+                min-height: 48px !important;
+                padding: 3px 2px !important;
+            }
+
+            .cutout-icon {
+                font-size: 16px !important;
+            }
+
+            .cutout-label {
+                font-size: 7.5px !important;
+            }
+        }
+
+        /* Landscape Screen and Print Overrides */
+        body.landscape-mode .sheets-container {
+            max-width: 1100px;
+        }
+
+        body.landscape-mode .worksheet-page {
+            max-width: 1100px;
+            min-height: 640px;
+            gap: 4px;
+            padding: 8px 14px;
+        }
+
+        body.landscape-mode .sheet-main-content {
+            display: grid;
+            grid-template-columns: 1.15fr 0.85fr;
+            gap: 12px;
+        }
+
+        body.landscape-mode .tactical-grid-wrapper {
+            max-height: 330px;
+        }
+
+        body.landscape-mode .tactical-grid-svg {
+            max-height: 320px;
+        }
+
+        @media print {
+            body.landscape-mode .worksheet-page {
+                max-height: 202mm !important;
+                height: 100% !important;
+                gap: 3px !important;
+                padding: 0 !important;
+                justify-content: space-between !important;
+            }
+
+            body.landscape-mode .sheet-header {
+                padding-bottom: 2px !important;
+                border-bottom: 1.5px solid #000000 !important;
+            }
+
+            body.landscape-mode .sheet-system-title {
+                font-size: 12px !important;
+            }
+
+            body.landscape-mode .sheet-sub-title {
+                font-size: 8px !important;
+            }
+
+            body.landscape-mode .sheet-mission-badge {
+                padding: 1px 6px !important;
+                font-size: 8px !important;
+            }
+
+            body.landscape-mode .sheet-meta-grid {
+                padding: 2.5px 6px !important;
+                gap: 2px 8px !important;
+                font-size: 8px !important;
+            }
+
+            body.landscape-mode .meta-label {
+                font-size: 7.5px !important;
+            }
+
+            body.landscape-mode .meta-line {
+                height: 11px !important;
+            }
+
+            body.landscape-mode .meta-roles-row {
+                font-size: 7.5px !important;
+                padding-top: 1.5px !important;
+                gap: 8px !important;
+            }
+
+            body.landscape-mode .role-box {
+                width: 9px !important;
+                height: 9px !important;
+            }
+
+            body.landscape-mode .sheet-main-content {
+                display: grid !important;
+                grid-template-columns: 1.15fr 0.85fr !important;
+                gap: 10px !important;
+                flex: 1 !important;
+                align-items: stretch !important;
+                min-height: 0 !important;
+            }
+
+            body.landscape-mode .grid-panel {
+                display: flex !important;
+                flex-direction: column !important;
+                justify-content: space-between !important;
+                gap: 2px !important;
+                min-height: 0 !important;
+            }
+
+            body.landscape-mode .tactical-grid-wrapper {
+                padding: 2px !important;
+                border: 1.5px solid #000000 !important;
+                flex: 1 !important;
+                max-height: 108mm !important;
+                display: flex !important;
+                align-items: center !important;
+                justify-content: center !important;
+            }
+
+            body.landscape-mode .tactical-grid-svg {
+                max-height: 106mm !important;
+                width: auto !important;
+                height: 100% !important;
+            }
+
+            body.landscape-mode .grid-legend-row {
+                padding: 1.5px 4px !important;
+                gap: 2px 5px !important;
+                font-size: 6.8px !important;
+                margin-top: 1px !important;
+            }
+
+            body.landscape-mode .kinematics-guide-box {
+                padding: 1.5px 4px !important;
+                margin-top: 1px !important;
+                gap: 1px !important;
+            }
+
+            body.landscape-mode .guide-header {
+                font-size: 6.8px !important;
+            }
+
+            body.landscape-mode .guide-sub {
+                font-size: 6px !important;
+            }
+
+            body.landscape-mode .guide-grid {
+                gap: 2px 4px !important;
+            }
+
+            body.landscape-mode .guide-cell {
+                padding: 1px 3px !important;
+                font-size: 6.5px !important;
+                line-height: 1.15 !important;
+            }
+
+            body.landscape-mode .code-panel {
+                display: flex !important;
+                flex-direction: column !important;
+                justify-content: space-between !important;
+                gap: 2px !important;
+                min-height: 0 !important;
+            }
+
+            body.landscape-mode .mission-params-card {
+                padding: 2px 4px !important;
+                gap: 1.5px !important;
+            }
+
+            body.landscape-mode .card-col-title {
+                font-size: 6.8px !important;
+            }
+
+            body.landscape-mode .coord-inputs-row {
+                font-size: 7px !important;
+            }
+
+            body.landscape-mode .coord-box {
+                width: 20px !important;
+                height: 11px !important;
+            }
+
+            body.landscape-mode .radio-opt {
+                font-size: 6.8px !important;
+            }
+
+            body.landscape-mode .card-header-bar {
+                font-size: 6.8px !important;
+                padding: 1px 3px !important;
+            }
+
+            body.landscape-mode .code-table-card {
+                flex: 1 !important;
+                display: flex !important;
+                flex-direction: column !important;
+                border: 1.5px solid #000000 !important;
+            }
+
+            body.landscape-mode .code-table-card thead th {
+                padding: 1px 3px !important;
+                font-size: 6.8px !important;
+            }
+
+            body.landscape-mode .code-table-card tbody td {
+                padding: 1px 3px !important;
+                font-size: 7px !important;
+                height: 9px !important;
+            }
+
+            body.landscape-mode .syntax-strip {
+                padding: 1.5px 3px !important;
+                font-size: 6.2px !important;
+            }
+
+            body.landscape-mode .sheet-bottom-row {
+                display: grid !important;
+                grid-template-columns: 1fr 1fr !important;
+                gap: 6px !important;
+            }
+
+            body.landscape-mode .scoring-guide-box,
+            body.landscape-mode .signature-box {
+                padding: 1.5px 4px !important;
+            }
+
+            body.landscape-mode .scoring-title,
+            body.landscape-mode .signature-title {
+                font-size: 6.8px !important;
+            }
+
+            body.landscape-mode .scoring-chips-row {
+                font-size: 6.5px !important;
+            }
+
+            body.landscape-mode .approval-line {
+                height: 9px !important;
+                margin-top: 1px !important;
+            }
+
+            body.landscape-mode .cutout-grid {
+                gap: 4px !important;
+                padding: 4px !important;
+            }
+
+            body.landscape-mode .cutout-cell {
+                min-height: 42px !important;
+                padding: 2px !important;
+            }
+
+            body.landscape-mode .cutout-icon {
+                font-size: 14px !important;
+            }
+
+            body.landscape-mode .cutout-label {
+                font-size: 7px !important;
+            }
+        }
+    </style>
+    <style id="page-print-size">
+        @page {
+            size: letter portrait;
+            margin: 7mm 9mm 6mm 9mm;
         }
     </style>
 </head>
@@ -632,7 +1329,8 @@
     <!-- SCREEN PRINTING TOOLBAR -->
     <header class="screen-toolbar">
         <div class="toolbar-title">
-            <span>&#x1F5B6;&#xFE0F; CENTRO DE IMPRESIÓN TÁCTICA</sp            <span style="color: #94a3b8; font-size: 13px;">// HOJAS DE RUTA Y PLANIFICACIÓN TÁCTICA</span>
+            <span>&#x1F680; PROYECTO HEFESTO // CENTRO DE CONTROL Y SIMULACIÓN DE VUELO</span>
+            <span style="color: #94a3b8; font-size: 13px;">// DIVISIÓN DE OPERACIONES ESPACIALES Y TELEMETRÍA</span>
         </div>
 
         <div class="toolbar-controls">
@@ -653,6 +1351,12 @@
                 <option value="CUTOUTS">FICHA ANEXA: PIEZAS Y SÍMBOLOS RECORTABLES</option>
             </select>
 
+            <label for="orientation-selector" style="font-size: 13px; font-weight: 700; color: #cbd5e1;">FORMATO:</label>
+            <select id="orientation-selector" class="toolbar-select">
+                <option value="portrait" selected>📄 VERTICAL (CARTA 8.5x11")</option>
+                <option value="landscape">📑 HORIZONTAL (CARTA 11x8.5")</option>
+            </select>
+
             <button type="button" class="toolbar-btn" onclick="window.print()">
                 &#x1F5A8;&#xFE0F; IMPRIMIR AHORA (CTRL + P)
             </button>
@@ -668,8 +1372,8 @@
         <article class="worksheet-page" id="sheet-universal" data-sheet-id="UNIVERSAL">
             <header class="sheet-header">
                 <div class="sheet-logo-group">
-                    <h1 class="sheet-system-title">SIMULADOR VECTORIAL TÁCTICO // MISIÓN EN PAPEL</h1>
-                    <span class="sheet-sub-title">Hoja de Diseño y Planificación de Algoritmos Autónomos</span>
+                    <h1 class="sheet-system-title">PROYECTO HEFESTO // MISIÓN EN PAPEL</h1>
+                    <span class="sheet-sub-title">Hoja de Diseño y Planificación de Algoritmos Autónomos // HEFESTO-1</span>
                 </div>
                 <div class="sheet-mission-badge">
                     PLANTILLA UNIVERSAL<br>
@@ -679,7 +1383,7 @@
 
             <section class="sheet-meta-grid">
                 <div class="meta-field">
-                    <span class="meta-label">Operador / Especialista:</span>
+                    <span class="meta-label">Ingeniero(a) de Vuelo:</span>
                     <span class="meta-line"></span>
                 </div>
                 <div class="meta-field">
@@ -787,6 +1491,7 @@
                     </div>
 
                     <div class="grid-legend-row">
+                        <div class="legend-item"><span class="legend-symbol" style="color: #0284c7;">&#x25BC;</span> Rover (Marcar Rumbo)</div>
                         <div class="legend-item"><span class="legend-symbol" style="color: #0284c7;">&#x2691;</span> Base (CP0)</div>
                         <div class="legend-item"><span class="legend-symbol" style="color: #059669;">&#x25C9;</span> Baliza (CP)</div>
                         <div class="legend-item"><span class="legend-symbol" style="color: #ea580c;">&#x25B2;</span> Pilón</div>
@@ -794,6 +1499,39 @@
                         <div class="legend-item"><span class="legend-symbol" style="color: #7c3aed;">&#x2B22;</span> Geoda (+100)</div>
                         <div class="legend-item"><span class="legend-symbol" style="color: #0d9488;">&#x25C6;</span> Energía (+50)</div>
                         <div class="legend-item"><span class="legend-symbol" style="color: #9333ea;">&#x2668;</span> Grieta (+150)</div>
+                    </div>
+
+                    <div class="kinematics-guide-box">
+                        <div class="guide-header">
+                            <span>&#x1F9ED; GUÍA DE CINEMÁTICA Y GIROS RELATIVOS</span>
+                            <span class="guide-sub">EL ROVER GIRA RESPECTO A SU PROPIO FRENTE</span>
+                        </div>
+                        <div class="guide-grid">
+                            <div class="guide-cell cell-highlight">
+                                <span class="cell-dir">SI MIRA AL <b>SUR (&darr;) [FRENTE ABAJO]</b>:</span>
+                                <span class="cell-action"><code>AVANZAR()</code>: Hacia abajo en el mapa (Y-1)</span>
+                                <span class="cell-turn"><code>GIRAR_DER()</code> &#x21BB;: Gira a su derecha &rarr; <b>OESTE (&larr;)</b></span>
+                                <span class="cell-turn"><code>GIRAR_IZQ()</code> &#x21BA;: Gira a su izquierda &rarr; <b>ESTE (&rarr;)</b></span>
+                            </div>
+                            <div class="guide-cell">
+                                <span class="cell-dir">SI MIRA AL <b>ESTE (&rarr;) [FRENTE DERECHA]</b>:</span>
+                                <span class="cell-action"><code>AVANZAR()</code>: Hacia la derecha (X+1)</span>
+                                <span class="cell-turn"><code>GIRAR_DER()</code> &#x21BB;: &rarr; <b>SUR (&darr;)</b></span>
+                                <span class="cell-turn"><code>GIRAR_IZQ()</code> &#x21BA;: &rarr; <b>NORTE (&uarr;)</b></span>
+                            </div>
+                            <div class="guide-cell">
+                                <span class="cell-dir">SI MIRA AL <b>NORTE (&uarr;) [FRENTE ARRIBA]</b>:</span>
+                                <span class="cell-action"><code>AVANZAR()</code>: Hacia arriba en el mapa (Y+1)</span>
+                                <span class="cell-turn"><code>GIRAR_DER()</code> &#x21BB;: &rarr; <b>ESTE (&rarr;)</b></span>
+                                <span class="cell-turn"><code>GIRAR_IZQ()</code> &#x21BA;: &rarr; <b>OESTE (&larr;)</b></span>
+                            </div>
+                            <div class="guide-cell">
+                                <span class="cell-dir">SI MIRA AL <b>OESTE (&larr;) [FRENTE IZQUIERDA]</b>:</span>
+                                <span class="cell-action"><code>AVANZAR()</code>: Hacia la izquierda (X-1)</span>
+                                <span class="cell-turn"><code>GIRAR_DER()</code> &#x21BB;: &rarr; <b>NORTE (&uarr;)</b></span>
+                                <span class="cell-turn"><code>GIRAR_IZQ()</code> &#x21BA;: &rarr; <b>SUR (&darr;)</b></span>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -863,7 +1601,7 @@
                         </tbody>
                     </table>
 
-                    <div style="font-size: 10px; color: #4b5563; background: #f3f4f6; border-left: 3px solid #0891b2; padding: 4px 8px; border-radius: 2px;">
+                    <div class="syntax-box">
                         <strong>SINTAXIS PERMITIDA:</strong><br>
                         <code>AVANZAR(n)</code> &bull; <code>GIRAR_DER()</code> &bull; <code>GIRAR_IZQ()</code> &bull; <code>SCAN()</code> &bull; <code>LOOP(n) { ... }</code>
                     </div>
@@ -896,8 +1634,8 @@
         <article class="worksheet-page" id="sheet-cutouts" data-sheet-id="CUTOUTS">
             <header class="sheet-header">
                 <div class="sheet-logo-group">
-                    <h1 class="sheet-system-title">BANCO DE PIEZAS Y SÍMBOLOS RECORTABLES</h1>
-                    <span class="sheet-sub-title">Elementos Manipulativos para Simulación Unplugged en Mesa</span>
+                    <h1 class="sheet-system-title">PROYECTO HEFESTO // BANCO DE PIEZAS Y SÍMBOLOS</h1>
+                    <span class="sheet-sub-title">Elementos Manipulativos para Simulación Unplugged en Mesa // Banco de Pruebas</span>
                 </div>
                 <div class="sheet-mission-badge">
                     ANEXO TÁCTICO<br>
@@ -905,8 +1643,9 @@
                 </div>
             </header>
 
-            <div style="font-size: 12px; color: #374151; padding: 6px 0;">
-                Instrucciones: Recorta estas fichas cuadradas para colocarlas o desplazarlas sobre la cuadrícula del mapa impreso. Permite ensayar la cinemática del rover, las rotaciones de 90° y la ubicación exacta de los obstáculos.
+            <div style="font-size: 11.5px; color: #1e293b; background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 4px; padding: 6px 10px; margin: 4px 0 8px 0; line-height: 1.4;">
+                <strong>INSTRUCCIONES DE USO:</strong> Recorta estas fichas cuadradas con tijeras para manipularlas directamente sobre la cuadrícula del mapa impreso.<br>
+                <strong>CONSEJO TÁCTICO:</strong> Coloca la ficha del <strong>ROVER (SUR) &#x25BC;</strong> sobre la casilla <strong>CP0</strong>. Al redactar tus comandos, gira físicamente la ficha con los dedos hacia la derecha (<code>GIRAR_DER()</code> &rarr; Oeste) o izquierda (<code>GIRAR_IZQ()</code> &rarr; Este) para comprobar visualmente hacia dónde avanza el vehículo antes de transcribirlo a la computadora.
             </div>
 
             <div class="cutouts-sheet">
@@ -966,12 +1705,12 @@
                     </div>
                 </div>
 
-                <div class="panel-heading">&#x26A0;&#xFE0F; OBSTÁCULOS DEFENSIVOS Y PELIGROS</div>
+                <div class="panel-heading">&#x26A0;&#xFE0F; OBSTÁCULOS Y MONTAÑAS DEFENSIVAS</div>
                 <div class="cutout-grid">
-                    <div class="cutout-cell"><span class="cutout-icon" style="color: #ea580c;">&#x25B2;</span><span class="cutout-label">PILÓN 1</span></div>
-                    <div class="cutout-cell"><span class="cutout-icon" style="color: #ea580c;">&#x25B2;</span><span class="cutout-label">PILÓN 2</span></div>
-                    <div class="cutout-cell"><span class="cutout-icon" style="color: #ea580c;">&#x25B2;</span><span class="cutout-label">PILÓN 3</span></div>
-                    <div class="cutout-cell"><span class="cutout-icon" style="color: #ea580c;">&#x25B2;</span><span class="cutout-label">PILÓN 4</span></div>
+                    <div class="cutout-cell"><span class="cutout-icon" style="color: #ea580c;">&#x25B2;</span><span class="cutout-label">MONTAÑA 1</span></div>
+                    <div class="cutout-cell"><span class="cutout-icon" style="color: #ea580c;">&#x25B2;</span><span class="cutout-label">MONTAÑA 2</span></div>
+                    <div class="cutout-cell"><span class="cutout-icon" style="color: #ea580c;">&#x25B2;</span><span class="cutout-label">MONTAÑA 3</span></div>
+                    <div class="cutout-cell"><span class="cutout-icon" style="color: #ea580c;">&#x25B2;</span><span class="cutout-label">MONTAÑA 4</span></div>
                     <div class="cutout-cell"><span class="cutout-icon" style="color: #dc2626;">&#x2622;</span><span class="cutout-label">MINA 1</span></div>
                     <div class="cutout-cell"><span class="cutout-icon" style="color: #dc2626;">&#x2622;</span><span class="cutout-label">MINA 2</span></div>
                 </div>
@@ -983,7 +1722,7 @@
                     <div class="cutout-cell"><span class="cutout-icon" style="color: #7c3aed;">&#x2B22;</span><span class="cutout-label">GEODA (+100)</span></div>
                     <div class="cutout-cell"><span class="cutout-icon" style="color: #0d9488;">&#x25C6;</span><span class="cutout-label">ENERGÍA (+50)</span></div>
                     <div class="cutout-cell"><span class="cutout-icon" style="color: #0d9488;">&#x25C6;</span><span class="cutout-label">ENERGÍA (+50)</span></div>
-                    <div class="cutout-cell"><span class="cutout-icon" style="color: #9333ea;">&#x2668;</span><span class="cutout-label">GRIETA SCAN</span></div>
+                    <div class="cutout-cell"><span class="cutout-icon" style="color: #9333ea; display:inline-flex; align-items:center; justify-content:center;"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#9333ea" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 13l5-6 3 5 4-8 5 11 3-4"/></svg></span><span class="cutout-label">GRIETA SCAN</span></div>
                 </div>
             </div>
         </article>
@@ -1057,10 +1796,23 @@
                         entitiesSvg += `
                             <g transform="translate(${cx.toFixed(1)}, ${cy.toFixed(1)})">
                                 <circle cx="0" cy="0" r="10" fill="#faf5ff" stroke="#9333ea" stroke-dasharray="3,2" stroke-width="2"/>
-                                <text y="4" font-size="11" font-weight="900" fill="#9333ea" text-anchor="middle">♨</text>
+                                <path d="M-6,2 L-3,-4 L0,2 L3,-5 L6,3" fill="none" stroke="#9333ea" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
                             </g>
                         `;
                     }
+                }
+            }
+
+            let routeLinesSvg = '';
+            if (Array.isArray(level.waypoints) && level.waypoints.length > 1) {
+                for (let idx = 0; idx < level.waypoints.length - 1; idx++) {
+                    const wpA = level.waypoints[idx];
+                    const wpB = level.waypoints[idx + 1];
+                    const x1 = startOffset + (wpA.x - 0.5) * cellSize;
+                    const y1 = startOffset + ((size - wpA.y) + 0.5) * cellSize;
+                    const x2 = startOffset + (wpB.x - 0.5) * cellSize;
+                    const y2 = startOffset + ((size - wpB.y) + 0.5) * cellSize;
+                    routeLinesSvg += `<line x1="${x1.toFixed(1)}" y1="${y1.toFixed(1)}" x2="${x2.toFixed(1)}" y2="${y2.toFixed(1)}" stroke="#94a3b8" stroke-width="1.8" stroke-dasharray="4,4" opacity="0.6"/>`;
                 }
             }
 
@@ -1072,15 +1824,64 @@
                     const cy = startOffset + ((size - wp.y) + 0.5) * cellSize;
                     const isBase = idx === 0;
                     const isMeta = idx === level.waypoints.length - 1;
-                    const label = isBase ? 'CP0' : (isMeta ? `CP${idx}` : `CP${idx}`);
-                    const badgeColor = isBase ? '#0284c7' : (isMeta ? '#059669' : '#d946ef');
+                    const label = `CP${idx}`;
 
-                    waypointsSvg += `
-                        <g transform="translate(${cx.toFixed(1)}, ${cy.toFixed(1)})">
-                            <circle cx="0" cy="0" r="12" fill="${badgeColor}" stroke="#111827" stroke-width="2"/>
-                            <text y="3.5" font-size="8.5" font-family="monospace" font-weight="900" fill="#ffffff" text-anchor="middle">${label}</text>
-                        </g>
-                    `;
+                    if (isBase) {
+                        waypointsSvg += `
+                            <g transform="translate(${cx.toFixed(1)}, ${cy.toFixed(1)})">
+                                <circle cx="0" cy="0" r="16" fill="#e0f2fe" stroke="#0284c7" stroke-width="2" stroke-dasharray="3,2"/>
+                                <rect x="-11" y="-11" width="22" height="22" rx="4" fill="#0284c7" stroke="#0f172a" stroke-width="1.8"/>
+                                <rect x="-14" y="-12" width="3.5" height="24" rx="1.5" fill="#1e293b"/>
+                                <rect x="10.5" y="-12" width="3.5" height="24" rx="1.5" fill="#1e293b"/>
+                                <polygon points="0,9 6,0 2,0 2,-7 -2,-7 -2,0 -6,0" fill="#facc15" stroke="#78350f" stroke-width="1"/>
+                                <circle cx="-4" cy="8" r="1.2" fill="#ffffff"/>
+                                <circle cx="4" cy="8" r="1.2" fill="#ffffff"/>
+                                <circle cx="0" cy="-1" r="2" fill="#ffffff" stroke="#0f172a" stroke-width="0.8"/>
+                                <circle cx="-13" cy="-13" r="8" fill="#0369a1" stroke="#ffffff" stroke-width="1.5"/>
+                                <text x="-13" y="-10.5" font-size="7" font-family="monospace" font-weight="900" fill="#ffffff" text-anchor="middle">CP0</text>
+                            </g>
+                            <g transform="translate(${cx.toFixed(1)}, ${(cy + 22).toFixed(1)})">
+                                <rect x="-44" y="-7.5" width="88" height="15" rx="3" fill="#0f172a" stroke="#facc15" stroke-width="1"/>
+                                <text y="3.5" font-size="7.5" font-family="monospace" font-weight="900" fill="#facc15" text-anchor="middle">&#x25BC; INICIO: RUMBO SUR</text>
+                            </g>
+                        `;
+                    } else if (isMeta) {
+                        waypointsSvg += `
+                            <g transform="translate(${cx.toFixed(1)}, ${cy.toFixed(1)})">
+                                <circle cx="0" cy="0" r="15" fill="#dcfce7" stroke="#16a34a" stroke-width="2" stroke-dasharray="3,2"/>
+                                <circle cx="0" cy="0" r="11" fill="#16a34a" stroke="#111827" stroke-width="2"/>
+                                <text y="3.5" font-size="8.5" font-family="monospace" font-weight="900" fill="#ffffff" text-anchor="middle">${label}</text>
+                            </g>
+                            <g transform="translate(${cx.toFixed(1)}, ${(cy + 20).toFixed(1)})">
+                                <rect x="-34" y="-6.5" width="68" height="13" rx="3" fill="#14532d" stroke="#ffffff" stroke-width="1"/>
+                                <text y="2.5" font-size="7" font-family="monospace" font-weight="900" fill="#ffffff" text-anchor="middle">&#x2691; META FINAL</text>
+                            </g>
+                        `;
+                    } else {
+                        const nextWp = level.waypoints[idx + 1];
+                        const dx = nextWp ? nextWp.x - wp.x : 0;
+                        const dy = nextWp ? nextWp.y - wp.y : 0;
+                        let targetDir = 'ESTE';
+                        let arrowSymbol = '►';
+                        if (Math.abs(dx) >= Math.abs(dy)) {
+                            if (dx < 0) { targetDir = 'OESTE'; arrowSymbol = '◄'; }
+                            else { targetDir = 'ESTE'; arrowSymbol = '►'; }
+                        } else {
+                            if (dy < 0) { targetDir = 'SUR'; arrowSymbol = '▼'; }
+                            else { targetDir = 'NORTE'; arrowSymbol = '▲'; }
+                        }
+                        waypointsSvg += `
+                            <g transform="translate(${cx.toFixed(1)}, ${cy.toFixed(1)})">
+                                <circle cx="0" cy="0" r="13" fill="#fdf4ff" stroke="#c026d3" stroke-width="1.8" stroke-dasharray="2,2"/>
+                                <circle cx="0" cy="0" r="10" fill="#c026d3" stroke="#111827" stroke-width="1.8"/>
+                                <text y="3.5" font-size="8.5" font-family="monospace" font-weight="900" fill="#ffffff" text-anchor="middle">${label}</text>
+                            </g>
+                            <g transform="translate(${cx.toFixed(1)}, ${(cy + 18).toFixed(1)})">
+                                <rect x="-38" y="-5.5" width="76" height="11" rx="2" fill="#4a044e" stroke="#ffffff" stroke-width="0.8"/>
+                                <text y="2.5" font-size="6.5" font-family="monospace" font-weight="800" fill="#ffffff" text-anchor="middle">${arrowSymbol} RELEVO ${idx}: ${targetDir}</text>
+                            </g>
+                        `;
+                    }
                 }
             }
 
@@ -1088,6 +1889,7 @@
                 <svg class="tactical-grid-svg" viewBox="0 0 460 460" xmlns="http://www.w3.org/2000/svg">
                     <rect x="${startOffset}" y="${startOffset}" width="400" height="400" fill="#ffffff" stroke="#111827" stroke-width="2"/>
                     <g>${gridLines}</g>
+                    <g>${routeLinesSvg}</g>
                     <g>${entitiesSvg}</g>
                     <g>${waypointsSvg}</g>
                     <g>${axisLabels}</g>
@@ -1109,6 +1911,12 @@
                 article.id = `sheet-level-${lvl.id}`;
                 article.dataset.sheetId = `LEVEL-${lvl.id}`;
 
+                const cp0 = lvl.waypoints && lvl.waypoints[0] ? lvl.waypoints[0] : { x: 1, y: 1 };
+                const cp1 = lvl.waypoints && lvl.waypoints[1] ? lvl.waypoints[1] : { x: 2, y: 2 };
+                const cp2 = lvl.waypoints && lvl.waypoints[2] ? lvl.waypoints[2] : { x: 3, y: 3 };
+                const cp3 = lvl.waypoints && lvl.waypoints[3] ? lvl.waypoints[3] : { x: 4, y: 4 };
+                const meta = lvl.waypoints && lvl.waypoints.length > 0 ? lvl.waypoints[lvl.waypoints.length - 1] : { x: 5, y: 5 };
+
                 let waypointsText = '';
                 if (lvl.waypoints) {
                     waypointsText = lvl.waypoints.map((wp, idx) => `CP${idx}: (${wp.x}, ${wp.y})`).join(' &rarr; ');
@@ -1117,8 +1925,8 @@
                 article.innerHTML = `
                     <header class="sheet-header">
                         <div class="sheet-logo-group">
-                            <h1 class="sheet-system-title">${lvl.title}</h1>
-                            <span class="sheet-sub-title">Misión Táctica Certificada // ${lvl.objective}</span>
+                            <h1 class="sheet-system-title">PROYECTO HEFESTO // NIVEL ${lvl.id}: ${lvl.title}</h1>
+                            <span class="sheet-sub-title">Misión Hefesto-1 // ${lvl.objective}</span>
                         </div>
                         <div class="sheet-mission-badge">
                             CAMPAÑA NIVEL ${lvl.id}<br>
@@ -1128,7 +1936,7 @@
 
                     <section class="sheet-meta-grid">
                         <div class="meta-field">
-                            <span class="meta-label">Operador / Especialista:</span>
+                            <span class="meta-label">Ingeniero(a) de Vuelo:</span>
                             <span class="meta-line"></span>
                         </div>
                         <div class="meta-field">
@@ -1141,10 +1949,10 @@
                         </div>
                         <div class="meta-roles-row">
                             <span class="meta-label">Módulo Asignado:</span>
-                            <label class="role-check"><span class="role-box"></span> MOD 1 (Alfa)</label>
-                            <label class="role-check"><span class="role-box"></span> MOD 2 (Beta)</label>
-                            <label class="role-check"><span class="role-box"></span> MOD 3 (Gamma)</label>
-                            <label class="role-check"><span class="role-box"></span> MOD 4 (Delta)</label>
+                            <label class="role-check"><span class="role-box"></span> MOD 1 (Alfa: CP0 &rarr; CP1)</label>
+                            <label class="role-check"><span class="role-box"></span> MOD 2 (Beta: CP1 &rarr; CP2)</label>
+                            <label class="role-check"><span class="role-box"></span> MOD 3 (Gamma: CP2 &rarr; CP3)</label>
+                            <label class="role-check"><span class="role-box"></span> MOD 4 (Delta: CP3 &rarr; CP4)</label>
                         </div>
                     </section>
 
@@ -1168,13 +1976,47 @@
                             </div>
 
                             <div class="grid-legend-row">
-                                <div class="legend-item"><span class="legend-symbol" style="color: #0284c7;">&#x25C9;</span> Base CP0</div>
-                                <div class="legend-item"><span class="legend-symbol" style="color: #059669;">&#x25C9;</span> Meta CP4</div>
+                                <div class="legend-item"><span class="legend-symbol" style="color: #0284c7;">&#x25BC;</span> <b>Rover Inicio: CP0 (Rumbo SUR &darr;)</b></div>
+                                <div class="legend-item"><span class="legend-symbol" style="color: #c026d3;">&#x25C9;</span> Relevos CP1-CP3</div>
+                                <div class="legend-item"><span class="legend-symbol" style="color: #059669;">&#x2691;</span> Meta CP4</div>
                                 <div class="legend-item"><span class="legend-symbol" style="color: #ea580c;">▲</span> Pilón</div>
                                 <div class="legend-item"><span class="legend-symbol" style="color: #dc2626;">☢</span> Mina</div>
                                 <div class="legend-item"><span class="legend-symbol" style="color: #7c3aed;">⬢</span> Geoda (+100)</div>
                                 <div class="legend-item"><span class="legend-symbol" style="color: #0d9488;">◆</span> Energía (+50)</div>
                                 <div class="legend-item"><span class="legend-symbol" style="color: #9333ea;">♨</span> Grieta (+150)</div>
+                            </div>
+
+                            <div class="kinematics-guide-box">
+                                <div class="guide-header">
+                                    <span>&#x1F9ED; GUÍA DE CINEMÁTICA Y GIROS RELATIVOS</span>
+                                    <span class="guide-sub">EL ROVER GIRA RESPECTO A SU PROPIO FRENTE</span>
+                                </div>
+                                <div class="guide-grid">
+                                    <div class="guide-cell cell-highlight">
+                                        <span class="cell-dir">SI MIRA AL <b>SUR (&darr;) [INICIAL CP0]</b>:</span>
+                                        <span class="cell-action"><code>AVANZAR()</code>: Hacia abajo en el mapa (Y-1)</span>
+                                        <span class="cell-turn"><code>GIRAR_DER()</code> &#x21BB;: Gira a su derecha &rarr; <b>OESTE (&larr;)</b></span>
+                                        <span class="cell-turn"><code>GIRAR_IZQ()</code> &#x21BA;: Gira a su izquierda &rarr; <b>ESTE (&rarr;)</b></span>
+                                    </div>
+                                    <div class="guide-cell">
+                                        <span class="cell-dir">SI MIRA AL <b>ESTE (&rarr;) [FRENTE DERECHA]</b>:</span>
+                                        <span class="cell-action"><code>AVANZAR()</code>: Hacia la derecha (X+1)</span>
+                                        <span class="cell-turn"><code>GIRAR_DER()</code> &#x21BB;: &rarr; <b>SUR (&darr;)</b></span>
+                                        <span class="cell-turn"><code>GIRAR_IZQ()</code> &#x21BA;: &rarr; <b>NORTE (&uarr;)</b></span>
+                                    </div>
+                                    <div class="guide-cell">
+                                        <span class="cell-dir">SI MIRA AL <b>NORTE (&uarr;) [FRENTE ARRIBA]</b>:</span>
+                                        <span class="cell-action"><code>AVANZAR()</code>: Hacia arriba en el mapa (Y+1)</span>
+                                        <span class="cell-turn"><code>GIRAR_DER()</code> &#x21BB;: &rarr; <b>ESTE (&rarr;)</b></span>
+                                        <span class="cell-turn"><code>GIRAR_IZQ()</code> &#x21BA;: &rarr; <b>OESTE (&larr;)</b></span>
+                                    </div>
+                                    <div class="guide-cell">
+                                        <span class="cell-dir">SI MIRA AL <b>OESTE (&larr;) [FRENTE IZQUIERDA]</b>:</span>
+                                        <span class="cell-action"><code>AVANZAR()</code>: Hacia la izquierda (X-1)</span>
+                                        <span class="cell-turn"><code>GIRAR_DER()</code> &#x21BB;: &rarr; <b>NORTE (&uarr;)</b></span>
+                                        <span class="cell-turn"><code>GIRAR_IZQ()</code> &#x21BA;: &rarr; <b>SUR (&darr;)</b></span>
+                                    </div>
+                                </div>
                             </div>
                         </div>
 
@@ -1187,40 +2029,48 @@
                             <div class="mission-params-card">
                                 ${waypointsText ? `
                                 <div class="params-route-bar">
-                                    <span class="route-title">SECUENCIA DE BALIZAS:</span>
+                                    <span class="route-title">MISIÓN HEFESTO-1 // RUTA:</span>
                                     <span class="route-waypoints">${waypointsText}</span>
                                 </div>` : ''}
+
+                                <div class="stage-routes-list">
+                                    <div class="stage-route-item"><b>MOD 1 (Alfa):</b> CP0 (${cp0.x}, ${cp0.y}) [SUR &darr;] &rarr; CP1 (${cp1.x}, ${cp1.y})</div>
+                                    <div class="stage-route-item"><b>MOD 2 (Beta):</b> CP1 (${cp1.x}, ${cp1.y}) &rarr; CP2 (${cp2.x}, ${cp2.y})</div>
+                                    <div class="stage-route-item"><b>MOD 3 (Gamma):</b> CP2 (${cp2.x}, ${cp2.y}) &rarr; CP3 (${cp3.x}, ${cp3.y})</div>
+                                    <div class="stage-route-item"><b>MOD 4 (Delta):</b> CP3 (${cp3.x}, ${cp3.y}) &rarr; CP4 (${meta.x}, ${meta.y}) [META]</div>
+                                </div>
+
                                 <div class="params-slots-grid">
                                     <div class="param-slot">
-                                        <span class="slot-label">INSERCIÓN (CP INICIAL)</span>
+                                        <span class="slot-label">INSERCIÓN ROVER (BASE CP0)</span>
                                         <div class="slot-coord-pill">
-                                            <span>X: <span class="slot-line">&nbsp;&nbsp;&nbsp;&nbsp;</span></span>
+                                            <span>X: <b>${cp0.x}</b></span>
                                             <span class="slot-sep">|</span>
-                                            <span>Y: <span class="slot-line">&nbsp;&nbsp;&nbsp;&nbsp;</span></span>
+                                            <span>Y: <b>${cp0.y}</b></span>
                                         </div>
                                     </div>
 
                                     <div class="param-slot">
-                                        <span class="slot-label">RUMBO INICIAL</span>
+                                        <span class="slot-label">RUMBO INICIAL (CP0)</span>
                                         <div class="slot-heading-selectors">
                                             <span class="heading-opt"><span class="heading-box"></span>N</span>
                                             <span class="heading-opt"><span class="heading-box"></span>E</span>
-                                            <span class="heading-opt"><span class="heading-box"></span>S</span>
+                                            <span class="heading-opt active-heading"><span class="heading-box checked">&#x2714;</span>S (&darr;)</span>
                                             <span class="heading-opt"><span class="heading-box"></span>O</span>
                                         </div>
                                     </div>
 
                                     <div class="param-slot">
-                                        <span class="slot-label">DESTINO (CP OBJETIVO)</span>
+                                        <span class="slot-label">DESTINO FINAL (META CP4)</span>
                                         <div class="slot-coord-pill">
-                                            <span>X: <span class="slot-line">&nbsp;&nbsp;&nbsp;&nbsp;</span></span>
+                                            <span>X: <b>${meta.x}</b></span>
                                             <span class="slot-sep">|</span>
-                                            <span>Y: <span class="slot-line">&nbsp;&nbsp;&nbsp;&nbsp;</span></span>
+                                            <span>Y: <b>${meta.y}</b></span>
                                         </div>
                                     </div>
 
                                     <div class="param-slot slot-accent">
-                                        <span class="slot-label">MEMORIA MÁXIMA</span>
+                                        <span class="slot-label">MEMORIA POR MÓDULO</span>
                                         <div class="slot-limit-badge">10 COMANDOS</div>
                                     </div>
                                 </div>
@@ -1248,7 +2098,7 @@
                                 </tbody>
                             </table>
 
-                            <div style="font-size: 10px; color: #4b5563; background: #f3f4f6; border-left: 3px solid #0891b2; padding: 4px 8px; border-radius: 2px;">
+                            <div class="syntax-box">
                                 <strong>COMANDOS:</strong> <code>AVANZAR()</code> | <code>GIRAR_DER()</code> | <code>GIRAR_IZQ()</code> | <code>SCAN()</code> | <code>LOOP(n) { }</code>
                             </div>
                         </div>
@@ -1291,6 +2141,32 @@
                 }
             });
         });
+
+        // Handle Orientation Selector change
+        const orientationSelect = document.getElementById('orientation-selector');
+        const printStyleEl = document.getElementById('page-print-size');
+        if (orientationSelect && printStyleEl) {
+            orientationSelect.addEventListener('change', (e) => {
+                const isLandscape = e.target.value === 'landscape';
+                if (isLandscape) {
+                    document.body.classList.add('landscape-mode');
+                    printStyleEl.textContent = `
+                        @page {
+                            size: letter landscape !important;
+                            margin: 5mm 7mm !important;
+                        }
+                    `;
+                } else {
+                    document.body.classList.remove('landscape-mode');
+                    printStyleEl.textContent = `
+                        @page {
+                            size: letter portrait !important;
+                            margin: 7mm 9mm 6mm 9mm !important;
+                        }
+                    `;
+                }
+            });
+        }
 
         window.addEventListener('DOMContentLoaded', () => {
             buildCampaignSheets();

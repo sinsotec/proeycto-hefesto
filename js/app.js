@@ -785,6 +785,13 @@ class TacticalApp {
         this.levelTotalAnomalies = 0;
         this.reachedCheckpoints = new Set();
 
+        this.currentBattery = 100;
+        this.maxBattery = 100;
+        this.batteryDrainMove = 5;
+        this.batteryDrainRotate = 2;
+        this.batteryDrainScan = 10;
+        this.batteryRechargeAmount = 35;
+
         this.stages = [];
         this.currentStageIndex = 0;
         this.codeBuffers = new Map();
@@ -813,6 +820,8 @@ class TacticalApp {
             telemetryCoordinates: document.getElementById('telemetry-coordinates'),
             telemetryHeading: document.getElementById('telemetry-heading'),
             telemetryTarget: document.getElementById('telemetry-target'),
+            telemetryBatteryVal: document.getElementById('telemetry-battery-val'),
+            telemetryBatteryFill: document.getElementById('telemetry-battery-fill'),
             missionStatusBanner: document.getElementById('mission-status-banner'),
             btnDeleteLine: document.getElementById('btn-delete-line'),
             btnClearCode: document.getElementById('btn-clear-code'),
@@ -839,14 +848,39 @@ class TacticalApp {
             metricRocksCount: document.getElementById('metric-rocks-count'),
             metricEnergyCount: document.getElementById('metric-energy-count'),
             metricAnomaliesCount: document.getElementById('metric-anomalies-count'),
-            missionRankBadge: document.getElementById('mission-rank-badge')
+            missionRankBadge: document.getElementById('mission-rank-badge'),
+
+            modalBriefing: document.getElementById('modal-briefing'),
+            btnCloseBriefing: document.getElementById('btn-close-briefing'),
+            btnStartSimulation: document.getElementById('btn-start-simulation'),
+            btnOpenBriefing: document.getElementById('btn-open-briefing'),
+            chkDontShowBriefing: document.getElementById('chk-dont-show-briefing'),
+
+            modalSuccess: document.getElementById('modal-success'),
+            btnCloseSuccess: document.getElementById('btn-close-success'),
+            btnReplayLevel: document.getElementById('btn-replay-level'),
+            btnNextLevel: document.getElementById('btn-next-level'),
+            successMissionName: document.getElementById('success-mission-name'),
+            successRankBadge: document.getElementById('success-rank-badge'),
+            successScoreNumber: document.getElementById('success-score-number'),
+            successTerminalText: document.getElementById('success-terminal-text'),
+            metricSummaryStages: document.getElementById('metric-summary-stages'),
+            metricSummaryRocks: document.getElementById('metric-summary-rocks'),
+            metricSummaryEnergy: document.getElementById('metric-summary-energy'),
+            metricSummaryMemory: document.getElementById('metric-summary-memory')
         };
 
+        this.typewriterTimer = null;
         this.initScene();
         this.bindEvents();
         this.switchMode('CAMPAIGN');
 
-        this.logTelemetry('TACTICAL VECTOR ENGINE ONLINE. WELCOME OPERATOR.', 'INFO');
+        const briefingDismissed = localStorage.getItem('hefesto_briefing_dismissed');
+        if (!briefingDismissed) {
+            this.openBriefingModal();
+        }
+
+        this.logTelemetry('PROYECTO HEFESTO // CENTRO DE CONTROL Y TELEMETRÍA ONLINE // BASE HEFESTO-1.', 'INFO');
     }
 
     /**
@@ -1222,6 +1256,10 @@ class TacticalApp {
             if (!currentStage) return;
             const currentCode = this.dom.codeEditor.value;
             this.codeBuffers.set(currentStage.id, currentCode);
+            delete currentStage.finalHeading;
+            for (let i = this.currentStageIndex + 1; i < this.stages.length; i++) {
+                delete this.stages[i].finalHeading;
+            }
             if (this.currentMode === 'SANDBOX') {
                 localStorage.setItem(`tactical_code_v3_${this.currentMode}_${currentStage.id}`, currentCode);
             }
@@ -1419,6 +1457,224 @@ class TacticalApp {
                 }
             });
         }
+
+        if (this.dom.btnOpenBriefing) {
+            this.dom.btnOpenBriefing.addEventListener('click', () => {
+                this.audio.playClick();
+                this.openBriefingModal();
+            });
+        }
+
+        if (this.dom.btnCloseBriefing) {
+            this.dom.btnCloseBriefing.addEventListener('click', () => {
+                this.audio.playClick();
+                this.closeBriefingModal();
+            });
+        }
+
+        if (this.dom.btnStartSimulation) {
+            this.dom.btnStartSimulation.addEventListener('click', () => {
+                this.audio.playClick();
+                if (this.dom.chkDontShowBriefing && this.dom.chkDontShowBriefing.checked) {
+                    localStorage.setItem('hefesto_briefing_dismissed', 'true');
+                }
+                this.closeBriefingModal();
+            });
+        }
+
+        if (this.dom.modalBriefing) {
+            this.dom.modalBriefing.addEventListener('click', (e) => {
+                if (e.target === this.dom.modalBriefing) {
+                    this.closeBriefingModal();
+                }
+            });
+        }
+
+        if (this.dom.btnCloseSuccess) {
+            this.dom.btnCloseSuccess.addEventListener('click', () => {
+                this.audio.playClick();
+                this.closeSuccessModal();
+            });
+        }
+
+        if (this.dom.modalSuccess) {
+            this.dom.modalSuccess.addEventListener('click', (e) => {
+                if (e.target === this.dom.modalSuccess) {
+                    this.closeSuccessModal();
+                }
+            });
+        }
+
+        if (this.dom.btnReplayLevel) {
+            this.dom.btnReplayLevel.addEventListener('click', () => {
+                this.audio.playClick();
+                this.closeSuccessModal();
+                if (this.currentMode === 'CAMPAIGN') {
+                    this.loadCampaignLevel(this.currentCampaignLevelId || 1);
+                } else {
+                    this.selectStage(0);
+                }
+            });
+        }
+
+        if (this.dom.btnNextLevel) {
+            this.dom.btnNextLevel.addEventListener('click', () => {
+                this.audio.playClick();
+                this.closeSuccessModal();
+                if (this.currentMode === 'CAMPAIGN') {
+                    const nextId = (this.currentCampaignLevelId || 1) + 1;
+                    if (nextId <= TacticalApp.CAMPAIGN_LEVELS.length) {
+                        this.loadCampaignLevel(nextId);
+                    } else {
+                        this.logTelemetry('CAMPAÑA HEFESTO-1: TODOS LOS NIVELES CERTIFICADOS CON ÉXITO.', 'PASS');
+                    }
+                } else {
+                    this.selectStage(0);
+                }
+            });
+        }
+
+        window.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                if (this.dom.modalBriefing && this.dom.modalBriefing.classList.contains('active')) {
+                    this.closeBriefingModal();
+                }
+                if (this.dom.modalSuccess && this.dom.modalSuccess.classList.contains('active')) {
+                    this.closeSuccessModal();
+                }
+            }
+        });
+    }
+
+    /**
+     * Displays mission briefing and introductory screen.
+     */
+    openBriefingModal() {
+        if (this.dom.modalBriefing) {
+            this.dom.modalBriefing.classList.add('active');
+        }
+    }
+
+    /**
+     * Hides mission briefing modal.
+     */
+    closeBriefingModal() {
+        if (this.dom.modalBriefing) {
+            this.dom.modalBriefing.classList.remove('active');
+        }
+    }
+
+    /**
+     * Renders animated terminal text character by character.
+     * @param {HTMLElement | null} element
+     * @param {string} text
+     * @param {number} [speedMs]
+     */
+    typewriterEffect(element, text, speedMs = 14) {
+        if (!element) return;
+        if (this.typewriterTimer) {
+            clearInterval(this.typewriterTimer);
+            this.typewriterTimer = null;
+        }
+        element.textContent = '';
+        let index = 0;
+        this.typewriterTimer = setInterval(() => {
+            if (index < text.length) {
+                element.textContent += text.charAt(index);
+                index++;
+            } else {
+                clearInterval(this.typewriterTimer);
+                this.typewriterTimer = null;
+            }
+        }, speedMs);
+    }
+
+    /**
+     * Presents end-of-mission success dialog with telemetry results and typewriter narrative.
+     * @param {string} rank
+     * @param {number} score
+     * @param {number} usedBudget
+     * @param {number} totalBudget
+     */
+    showMissionSuccessModal(rank, score, usedBudget, totalBudget) {
+        if (!this.dom.modalSuccess) return;
+
+        let missionTitle = 'MISIÓN COMPLETADA';
+        let isLastLevel = false;
+
+        if (this.currentMode === 'CAMPAIGN') {
+            const level = TacticalApp.CAMPAIGN_LEVELS.find(l => l.id === this.currentCampaignLevelId);
+            if (level) {
+                missionTitle = `${level.title}`;
+            }
+            isLastLevel = this.currentCampaignLevelId >= TacticalApp.CAMPAIGN_LEVELS.length;
+        } else {
+            missionTitle = `MODO ${this.currentMode}`;
+        }
+
+        if (this.dom.successMissionName) {
+            this.dom.successMissionName.textContent = missionTitle;
+        }
+
+        if (this.dom.successRankBadge) {
+            const rankKey = rank.toLowerCase();
+            this.dom.successRankBadge.className = `success-rank-badge rank-${rankKey}`;
+            let icon = '🥉';
+            if (rankKey.includes('oro')) icon = '🥇';
+            else if (rankKey.includes('plata')) icon = '🥈';
+            this.dom.successRankBadge.innerHTML = `<span class="rank-icon">${icon}</span> <span class="rank-text">RANGO ${rank}</span>`;
+        }
+
+        if (this.dom.successScoreNumber) {
+            this.dom.successScoreNumber.innerHTML = `${score.toLocaleString()} <span class="pts-label">PTS</span>`;
+        }
+
+        if (this.dom.metricSummaryStages) {
+            this.dom.metricSummaryStages.textContent = `${this.stages.length} / ${this.stages.length}`;
+        }
+
+        if (this.dom.metricSummaryRocks) {
+            const rocksCount = this.dom.metricRocksCount ? this.dom.metricRocksCount.textContent : '0';
+            this.dom.metricSummaryRocks.textContent = `${rocksCount} MUESTRAS`;
+        }
+
+        if (this.dom.metricSummaryEnergy) {
+            const energyCount = this.dom.metricEnergyCount ? this.dom.metricEnergyCount.textContent : '0';
+            this.dom.metricSummaryEnergy.textContent = `${energyCount} CÉLULAS`;
+        }
+
+        if (this.dom.metricSummaryMemory) {
+            const bonus = usedBudget <= totalBudget ? '+200 PTS (ÓPTIMO)' : '0 PTS (EXCEDIDO)';
+            this.dom.metricSummaryMemory.textContent = bonus;
+        }
+
+        if (this.dom.btnNextLevel) {
+            if (isLastLevel) {
+                this.dom.btnNextLevel.textContent = 'CAMPAÑA COMPLETADA ★';
+                this.dom.btnNextLevel.disabled = true;
+            } else {
+                this.dom.btnNextLevel.textContent = 'SIGUIENTE NIVEL ➔';
+                this.dom.btnNextLevel.disabled = false;
+            }
+        }
+
+        const terminalMessage = `[TRANSMISIÓN HEFESTO-1] Ingenieros de Vuelo: Telemetría recibida con éxito en la Base Central. El explorador robótico completó el recorrido autónomo de manera 100% determinista, cumpliendo las especificaciones de vuelo sin registrar colisiones ni intervenciones manuales. Algoritmos certificados para despliegue interplanetario.`;
+        this.typewriterEffect(this.dom.successTerminalText, terminalMessage, 14);
+
+        this.dom.modalSuccess.classList.add('active');
+    }
+
+    /**
+     * Hides mission success dialog.
+     */
+    closeSuccessModal() {
+        if (this.typewriterTimer) {
+            clearInterval(this.typewriterTimer);
+            this.typewriterTimer = null;
+        }
+        if (this.dom.modalSuccess) {
+            this.dom.modalSuccess.classList.remove('active');
+        }
     }
 
     /**
@@ -1591,6 +1847,27 @@ class TacticalApp {
     }
 
     /**
+     * Translates numeric heading into readable coordinate vector string.
+     * @param {number} heading
+     * @returns {string}
+     */
+    getHeadingName(heading) {
+        const headingNames = ['NORTE (+Y)', 'ESTE (+X)', 'SUR (-Y)', 'OESTE (-X)'];
+        return headingNames[((heading % 4) + 4) % 4];
+    }
+
+    /**
+     * Returns the standardized start orientation calibrated by the beacon turntable.
+     * @param {number} stageIndex
+     * @returns {number} Normalized heading 0 to 3
+     */
+    getStageEffectiveHeading(stageIndex) {
+        if (stageIndex < 0 || stageIndex >= this.stages.length) return 2;
+        const stage = this.stages[stageIndex];
+        return stage.startHeading !== undefined ? stage.startHeading : 2;
+    }
+
+    /**
      * Switches the active pipeline module tab and updates the editor.
      * @param {number} stageIndex
      */
@@ -1609,8 +1886,12 @@ class TacticalApp {
         this.updateLineNumbers();
         this.evaluateMemoryHUD();
 
-        this.scene.setRoverState(stage.startX, stage.startY, stage.startHeading);
-        this.updateTelemetryHUD(stage.startX, stage.startY, stage.startHeading, stage.targetX, stage.targetY);
+        const activeHeading = this.getStageEffectiveHeading(stageIndex);
+        stage.startHeading = activeHeading;
+
+        this.scene.setRoverState(stage.startX, stage.startY, activeHeading);
+        this.updateTelemetryHUD(stage.startX, stage.startY, activeHeading, stage.targetX, stage.targetY);
+        this.updateBatteryHUD(100);
         this.setMissionBanner(`MÓDULO: MOD ${stageIndex + 1} - ${stage.name}. RUTA: ${stage.originId} &rarr; FARO MOD ${stageIndex + 1} (${stage.targetId})`, 'INFO');
 
         const reached = ['CP0'];
@@ -1765,10 +2046,32 @@ class TacticalApp {
      * @param {number} targetY
      */
     updateTelemetryHUD(x, y, heading, targetX, targetY) {
-        const headingNames = ['NORTH (+Y)', 'EAST (+X)', 'SOUTH (-Y)', 'WEST (-X)'];
+        const headingNames = ['NORTE (+Y)', 'ESTE (+X)', 'SUR (-Y)', 'OESTE (-X)'];
         this.dom.telemetryCoordinates.textContent = `(${x}, ${y})`;
         this.dom.telemetryHeading.textContent = headingNames[((heading % 4) + 4) % 4];
         this.dom.telemetryTarget.textContent = `MOD ${this.currentStageIndex + 1} • (${targetX}, ${targetY})`;
+    }
+
+    /**
+     * Updates rover battery percentage readout and gauges.
+     * @param {number} value
+     */
+    updateBatteryHUD(value) {
+        this.currentBattery = Math.max(0, Math.min(this.maxBattery, Math.round(value)));
+        if (this.dom.telemetryBatteryVal) {
+            this.dom.telemetryBatteryVal.textContent = `${this.currentBattery}%`;
+            this.dom.telemetryBatteryVal.className = `metric-val ${
+                this.currentBattery > 50 ? 'battery-val-high' :
+                this.currentBattery >= 20 ? 'battery-val-medium' : 'battery-val-critical'
+            }`;
+        }
+        if (this.dom.telemetryBatteryFill) {
+            this.dom.telemetryBatteryFill.style.width = `${this.currentBattery}%`;
+            this.dom.telemetryBatteryFill.className = `battery-fill-bar ${
+                this.currentBattery > 50 ? 'fill-high' :
+                this.currentBattery >= 20 ? 'fill-medium' : 'fill-critical'
+            }`;
+        }
     }
 
     /**
@@ -1899,6 +2202,7 @@ class TacticalApp {
             this.scannedAnomaliesCount = initialAnomalies;
             this.reachedCheckpoints = initialCheckpoints;
             this.updateScoreHUD(false);
+            this.updateBatteryHUD(100);
             this.logTelemetry('UNIT TEST ISOLATION COMPLETE: TACTICAL SAMPLES & ANOMALIES RESTORED TO MAP SECTOR.', 'INFO');
         };
 
@@ -1909,6 +2213,8 @@ class TacticalApp {
         let currentY = stage.startY;
         let currentHeading = stage.startHeading;
         let testPassed = false;
+        let battery = 100;
+        this.updateBatteryHUD(battery);
 
         for (let i = 0; i < compileResult.steps.length; i++) {
             if (this.shouldHalt) {
@@ -1977,6 +2283,19 @@ class TacticalApp {
                     return false;
                 }
 
+                battery -= this.batteryDrainMove;
+                this.updateBatteryHUD(battery);
+                if (battery <= 0) {
+                    this.triggerCollisionVignette();
+                    this.audio.playAlert();
+                    this.logTelemetry(`FALLO CRÍTICO: BATERÍA AGOTADA EN (${nextX}, ${nextY}). ROVER INOPERATIVO.`, 'FAIL');
+                    this.setMissionBanner(`FALLO: BATERÍA AGOTADA EN (${nextX}, ${nextY}) • RECOLECTA CÉLULAS ◆ DE ENERGÍA`, 'COLLISION');
+                    this.updateStageIndicator(stage.id, 'FAIL');
+                    await restoreTestState(1200);
+                    this.setExecutionLock(false);
+                    return false;
+                }
+
                 this.audio.playMove();
                 await this.scene.tweenMove(nextX, nextY);
                 currentX = nextX;
@@ -1998,21 +2317,59 @@ class TacticalApp {
                     this.audio.playEnergyPickup();
                     this.collectedEnergyCount++;
                     this.tacticalScore += 50;
+                    battery = Math.min(this.maxBattery, battery + this.batteryRechargeAmount);
+                    this.updateBatteryHUD(battery);
                     this.updateScoreHUD();
                     this.pulseMetricHUD('metricEnergyCount');
-                    this.logTelemetry(`CÉLULA DE ENERGÍA RECARGADA EN (${nextX}, ${nextY})! +50 PTS.`, 'PASS');
+                    this.logTelemetry(`CÉLULA DE ENERGÍA RECARGADA EN (${nextX}, ${nextY})! +35% BATERÍA (+50 PTS).`, 'PASS');
                 }
             } else if (step.action === 'ROTATE_RIGHT') {
                 currentHeading = (currentHeading + 1) % 4;
+                battery -= this.batteryDrainRotate;
+                this.updateBatteryHUD(battery);
+                if (battery <= 0) {
+                    this.triggerCollisionVignette();
+                    this.audio.playAlert();
+                    this.logTelemetry(`FALLO CRÍTICO: BATERÍA AGOTADA DURANTE GIRO EN (${currentX}, ${currentY}).`, 'FAIL');
+                    this.setMissionBanner(`FALLO: BATERÍA AGOTADA EN (${currentX}, ${currentY}) • RECOLECTA CÉLULAS ◆ DE ENERGÍA`, 'COLLISION');
+                    this.updateStageIndicator(stage.id, 'FAIL');
+                    await restoreTestState(1200);
+                    this.setExecutionLock(false);
+                    return false;
+                }
                 this.audio.playRotate();
                 await this.scene.tweenRotate(currentHeading);
                 this.updateTelemetryHUD(currentX, currentY, currentHeading, stage.targetX, stage.targetY);
             } else if (step.action === 'ROTATE_LEFT') {
                 currentHeading = (currentHeading + 3) % 4;
+                battery -= this.batteryDrainRotate;
+                this.updateBatteryHUD(battery);
+                if (battery <= 0) {
+                    this.triggerCollisionVignette();
+                    this.audio.playAlert();
+                    this.logTelemetry(`FALLO CRÍTICO: BATERÍA AGOTADA DURANTE GIRO EN (${currentX}, ${currentY}).`, 'FAIL');
+                    this.setMissionBanner(`FALLO: BATERÍA AGOTADA EN (${currentX}, ${currentY}) • RECOLECTA CÉLULAS ◆ DE ENERGÍA`, 'COLLISION');
+                    this.updateStageIndicator(stage.id, 'FAIL');
+                    await restoreTestState(1200);
+                    this.setExecutionLock(false);
+                    return false;
+                }
                 this.audio.playRotate();
                 await this.scene.tweenRotate(currentHeading);
                 this.updateTelemetryHUD(currentX, currentY, currentHeading, stage.targetX, stage.targetY);
             } else if (step.action === 'SCAN') {
+                battery -= this.batteryDrainScan;
+                this.updateBatteryHUD(battery);
+                if (battery <= 0) {
+                    this.triggerCollisionVignette();
+                    this.audio.playAlert();
+                    this.logTelemetry(`FALLO CRÍTICO: BATERÍA AGOTADA TRAS PULSO DE RADAR EN (${currentX}, ${currentY}).`, 'FAIL');
+                    this.setMissionBanner(`FALLO: BATERÍA AGOTADA EN (${currentX}, ${currentY}) • RECOLECTA CÉLULAS ◆ DE ENERGÍA`, 'COLLISION');
+                    this.updateStageIndicator(stage.id, 'FAIL');
+                    await restoreTestState(1200);
+                    this.setExecutionLock(false);
+                    return false;
+                }
                 this.audio.playScan();
                 const scanReport = this.scene.triggerRadarScan();
                 if (scanReport && scanReport.detectedHazards && scanReport.detectedHazards.length > 0) {
@@ -2045,11 +2402,29 @@ class TacticalApp {
             this.logTelemetry(`UNIT TEST PASSED: REACHED TARGET ${stage.targetId} AT (${currentX}, ${currentY}) (+250 PTS)`, 'PASS');
             this.setMissionBanner(`UNIT TEST SUCCESSFUL: ${stage.name} QUALIFIED &bull; ${this.tacticalScore} PTS`, 'PASS');
             this.updateStageIndicator(stage.id, 'PASS');
+
+            if (stageIndex + 1 < this.stages.length) {
+                const nextStage = this.stages[stageIndex + 1];
+                this.audio.playRotate();
+                this.logTelemetry(`ACOPLAMIENTO BALIZA ${stage.targetId}: PLATAFORMA ELEVADORA ALINEANDO A ${this.getHeadingName(nextStage.startHeading)}...`, 'PASS');
+                this.setMissionBanner(`ACOPLAMIENTO ${stage.targetId}: ALINEANDO PLATAFORMA A ${this.getHeadingName(nextStage.startHeading)}`, 'PASS');
+                await this.scene.tweenDockingElevator(nextStage.startHeading, stage.targetId);
+                currentHeading = nextStage.startHeading;
+                stage.finalHeading = currentHeading;
+                this.updateTelemetryHUD(currentX, currentY, currentHeading, stage.targetX, stage.targetY);
+            } else {
+                stage.finalHeading = currentHeading;
+            }
         } else {
             this.audio.playAlert();
             this.logTelemetry(`UNIT TEST FAILED: TARGET MISSED. FINAL COORD: (${currentX}, ${currentY}), EXPECTED: (${stage.targetX}, ${stage.targetY})`, 'FAIL');
             this.setMissionBanner(`FAIL: MISALIGNED END POSITION (${currentX}, ${currentY})`, 'FAIL');
             this.updateStageIndicator(stage.id, 'FAIL');
+            await restoreTestState(1200);
+            this.scene.setRoverState(stage.startX, stage.startY, stage.startHeading);
+            this.updateTelemetryHUD(stage.startX, stage.startY, stage.startHeading, stage.targetX, stage.targetY);
+            this.setExecutionLock(false);
+            return false;
         }
 
         await restoreTestState(1200);
@@ -2088,6 +2463,8 @@ class TacticalApp {
         let currentX = initialStage.startX;
         let currentY = initialStage.startY;
         let currentHeading = initialStage.startHeading;
+        let battery = 100;
+        this.updateBatteryHUD(battery);
 
         for (let s = 0; s < this.stages.length; s++) {
             if (this.shouldHalt) {
@@ -2122,6 +2499,18 @@ class TacticalApp {
                 const step = compileResult.steps[i];
 
                 if (step.action === 'MOVE') {
+                    battery = Math.max(0, battery - 5);
+                    this.updateBatteryHUD(battery);
+                    if (battery <= 0) {
+                        this.triggerCollisionVignette();
+                        this.audio.playAlert();
+                        this.logTelemetry(`PIPELINE FALLIDO: BATERÍA AGOTADA (0%) EN ${stage.name}. ROVER DETENIDO.`, 'FAIL');
+                        this.setMissionBanner(`FALLO CRÍTICO: BATERÍA AGOTADA EN ${stage.name}. ROVER DETENIDO.`, 'FAIL');
+                        this.updateStageIndicator(stage.id, 'FAIL');
+                        this.setExecutionLock(false);
+                        return false;
+                    }
+
                     let nextX = currentX;
                     let nextY = currentY;
 
@@ -2196,21 +2585,56 @@ class TacticalApp {
                         this.audio.playEnergyPickup();
                         this.collectedEnergyCount++;
                         this.tacticalScore += 50;
+                        battery = Math.min(100, battery + 35);
+                        this.updateBatteryHUD(battery);
                         this.updateScoreHUD();
                         this.pulseMetricHUD('metricEnergyCount');
-                        this.logTelemetry(`CÉLULA DE ENERGÍA RECARGADA EN (${nextX}, ${nextY}) EN ${stage.name}! (+50 PTS)`, 'PASS');
+                        this.logTelemetry(`CÉLULA DE ENERGÍA ABSORBIDA EN (${nextX}, ${nextY}) EN ${stage.name}! (+35% BATERÍA, +50 PTS)`, 'PASS');
                     }
                 } else if (step.action === 'ROTATE_RIGHT') {
+                    battery = Math.max(0, battery - 2);
+                    this.updateBatteryHUD(battery);
+                    if (battery <= 0) {
+                        this.triggerCollisionVignette();
+                        this.audio.playAlert();
+                        this.logTelemetry(`PIPELINE FALLIDO: BATERÍA AGOTADA (0%) AL GIRAR EN ${stage.name}. ROVER DETENIDO.`, 'FAIL');
+                        this.setMissionBanner(`FALLO CRÍTICO: BATERÍA AGOTADA EN ${stage.name}. ROVER DETENIDO.`, 'FAIL');
+                        this.updateStageIndicator(stage.id, 'FAIL');
+                        this.setExecutionLock(false);
+                        return false;
+                    }
                     currentHeading = (currentHeading + 1) % 4;
                     this.audio.playRotate();
                     await this.scene.tweenRotate(currentHeading);
                     this.updateTelemetryHUD(currentX, currentY, currentHeading, stage.targetX, stage.targetY);
                 } else if (step.action === 'ROTATE_LEFT') {
+                    battery = Math.max(0, battery - 2);
+                    this.updateBatteryHUD(battery);
+                    if (battery <= 0) {
+                        this.triggerCollisionVignette();
+                        this.audio.playAlert();
+                        this.logTelemetry(`PIPELINE FALLIDO: BATERÍA AGOTADA (0%) AL GIRAR EN ${stage.name}. ROVER DETENIDO.`, 'FAIL');
+                        this.setMissionBanner(`FALLO CRÍTICO: BATERÍA AGOTADA EN ${stage.name}. ROVER DETENIDO.`, 'FAIL');
+                        this.updateStageIndicator(stage.id, 'FAIL');
+                        this.setExecutionLock(false);
+                        return false;
+                    }
                     currentHeading = (currentHeading + 3) % 4;
                     this.audio.playRotate();
                     await this.scene.tweenRotate(currentHeading);
                     this.updateTelemetryHUD(currentX, currentY, currentHeading, stage.targetX, stage.targetY);
                 } else if (step.action === 'SCAN') {
+                    battery = Math.max(0, battery - 10);
+                    this.updateBatteryHUD(battery);
+                    if (battery <= 0) {
+                        this.triggerCollisionVignette();
+                        this.audio.playAlert();
+                        this.logTelemetry(`PIPELINE FALLIDO: BATERÍA AGOTADA (0%) DURANTE EL ESCANEO RADAR EN ${stage.name}.`, 'FAIL');
+                        this.setMissionBanner(`FALLO CRÍTICO: BATERÍA AGOTADA EN ${stage.name}. ROVER DETENIDO.`, 'FAIL');
+                        this.updateStageIndicator(stage.id, 'FAIL');
+                        this.setExecutionLock(false);
+                        return false;
+                    }
                     this.audio.playScan();
                     const scanReport = this.scene.triggerRadarScan();
                     if (scanReport && scanReport.detectedHazards && scanReport.detectedHazards.length > 0) {
@@ -2232,6 +2656,9 @@ class TacticalApp {
             }
 
             if (currentX === stage.targetX && currentY === stage.targetY) {
+                stage.finalHeading = currentHeading;
+                battery = 100;
+                this.updateBatteryHUD(battery);
                 this.scene.pulseBeacon(stage.targetId);
                 reachedCheckpoints.push(stage.targetId);
                 if (!this.reachedCheckpoints.has(stage.targetId)) {
@@ -2244,6 +2671,17 @@ class TacticalApp {
                 this.audio.playSuccess();
                 this.logTelemetry(`STAGE ${s + 1} COMPLETE: HANDOVER AT ${stage.targetId} (${currentX}, ${currentY}) (+250 PTS)`, 'PASS');
                 this.updateStageIndicator(stage.id, 'PASS');
+
+                if (s + 1 < this.stages.length) {
+                    const nextStage = this.stages[s + 1];
+                    this.audio.playRotate();
+                    this.logTelemetry(`ACOPLAMIENTO BALIZA ${stage.targetId}: PLATAFORMA ELEVADORA ALINEANDO ROVER PARA MOD ${s + 2}...`, 'PASS');
+                    this.setMissionBanner(`ACOPLAMIENTO ${stage.targetId}: ALINEANDO PLATAFORMA A ${this.getHeadingName(nextStage.startHeading)}`, 'PASS');
+                    await this.scene.tweenDockingElevator(nextStage.startHeading, stage.targetId);
+                    currentHeading = nextStage.startHeading;
+                    stage.finalHeading = currentHeading;
+                    this.updateTelemetryHUD(currentX, currentY, currentHeading, stage.targetX, stage.targetY);
+                }
             } else {
                 this.audio.playAlert();
                 this.logTelemetry(`PIPELINE ABORTED: ${stage.name} FAILED TO REACH ${stage.targetId}. FINAL: (${currentX}, ${currentY})`, 'FAIL');
@@ -2271,6 +2709,7 @@ class TacticalApp {
         this.audio.playSuccess();
         this.logTelemetry(`MISSION ACCOMPLISHED: ALL PIPELINE STAGES VALIDATED. RANK: ${finalRank} | SCORE: ${this.tacticalScore} PTS.`, 'PASS');
         this.setMissionBanner(`¡MISIÓN CUMPLIDA! RANGO ${finalRank} &bull; PUNTUACIÓN: ${this.tacticalScore} PTS`, 'PASS');
+        this.showMissionSuccessModal(finalRank, this.tacticalScore, usedBudget, totalBudget);
         this.setExecutionLock(false);
         return true;
     }

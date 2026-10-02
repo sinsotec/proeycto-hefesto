@@ -1,26 +1,35 @@
-# GUÍA DIDÁCTICA Y MANUAL DE OPERACIONES TÁCTICAS
-## Simulador de Navegación Vectorial 3D y Pipeline Autónomo
-**Destinatarios:** Docentes, Instructores de Robótica y Estudiantes (8 a 12 años)  
-**Disciplina:** Ciencias de la Computación, Pensamiento Computacional, Robótica Educativa  
+# PROYECTO HEFESTO: NAVEGACIÓN AUTÓNOMA Y TELEMETRÍA
+## División de Control Espacial &bull; Centro de Control y Simulación de Vuelo
+**Plan Curricular:** Bloque 1 (Semanas 1 a 3)  
+**Nivel Educativo:** Primaria 2 (Altas Capacidades)  
+**Área:** Ciencias de la Computación y Pensamiento Algorítmico  
+**Contexto de Misión:** Clase 2 — Fase de Programación Digital y Navegación Autónoma en HEFESTO-1 (Base de Operaciones)  
 
 ---
 
-## 1. FUNDAMENTACIÓN PEDAGÓGICA Y METODOLOGÍA
+## 1. DEFINICIÓN DEL MÓDULO Y FUNDAMENTACIÓN METODOLÓGICA
 
-El **Simulador Vectorial Táctico 3D** implementa un enfoque de aprendizaje por indagación y programación cooperativa basado en la metodología **Unplugged-to-Digital** (del plano físico en papel al entorno digital interactivo).
+El **Proyecto Hefesto** es un módulo de aprendizaje basado en retos (*Challenge-Based Learning*) ambientado en la ingeniería de control y exploración espacial para estudiantes de altas capacidades.
 
-### 1.1 Metodología de Pipeline en Equipo (4 Roles)
-En la industria del software y la ingeniería aeroespacial, los sistemas complejos no son programados por una sola persona en un bloque monolítico, sino mediante **arquitecturas desacopladas y canalizaciones (pipelines)**.
+### 1.1 La Restricción Física: Latencia en Telecomunicaciones Interplanetarias
+El programa sitúa a los estudiantes frente a una limitación de la física real: debido a la distancia entre la Tierra y la base **HEFESTO-1**, las señales de radio sufren un retraso de varios minutos. 
+* **El pilotaje por control remoto en tiempo real (joystick) queda terminantemente descartado.**
+* **Exigencia técnica:** Los ingenieros de vuelo deben diseñar, verificar en banco de pruebas y cargar previamente algoritmos de navegación autónomos y deterministas. El explorador robótico ejecutará estas rutinas sin intervención humana externa.
 
-El aula se organiza en tripulaciones de 4 estudiantes:
-* **Módulo 1 — Comandante Alfa (Despliegue e Inserción):** Conduce el rover desde la Base (`CP0`) hasta el primer hito táctico (`CP1`).
-* **Módulo 2 — Navegante Beta (Navegación en Terreno Hostil):** Recibe la posta en `CP1` y debe guiar el rover a través de los obstáculos hasta `CP2`.
-* **Módulo 3 — Especialista Gamma (Reconocimiento y Muestreo):** Asume el control en `CP2`, recolecta minerales geológicos o células de energía y arriba a `CP3`.
-* **Módulo 4 — Ingeniero Delta (Aproximación y Certificación Final):** Toma el vehículo en `CP3` y realiza la maniobra de aterrizaje o acople en la Meta Final (`CP4`).
+### 1.2 Transición Pedagógica: Del Banco Físico (Clase 1) a la Consola Digital (Clase 2)
+* **Clase 1 (Prueba de Piso Aprobada):** Los ingenieros diseñaron rutas y bucles (*loops*) en el suelo del laboratorio físico esquivando obstáculos sin registrar choques.
+* **Clase 2 (Fase de Programación Digital):** Activación de la consola de software (simulador 3D). Transcripción digital rigurosa de las rutas probadas y calibración de la navegación autónoma para la misión oficial en HEFESTO-1.
 
-### 1.2 Pruebas Unitarias vs. Integración Continua (Pipeline)
-* **Test Unitario (`TEST UNITARIO`):** Cada estudiante verifica su propio módulo de manera aislada. Si su código falla, el simulador reporta el error sin interferir con el trabajo de los compañeros.
-* **Pipeline Completo (`EJECUTAR PIPELINE COMPLETO`):** Una vez que los 4 módulos han superado sus pruebas unitarias, el equipo une sus códigos para ejecutar la misión continua sin interrupciones.
+### 1.3 Arquitectura de Pipeline en Equipo: Ingenieros de Vuelo (4 Módulos)
+En la ingeniería aeroespacial, las misiones complejas se dividen en etapas desacopladas y secuenciales organizadas en un *pipeline* colaborativo:
+* **Módulo 1 — Ingeniero Alfa (Despliegue e Inserción):** Conduce el rover desde la Base (`CP0`) hasta el primer hito táctico (`CP1`).
+* **Módulo 2 — Ingeniero Beta (Navegación en Terreno Hostil):** Recibe la posta en `CP1` y guía el rover a través de pilones y obstáculos hasta `CP2`.
+* **Módulo 3 — Ingeniero Gamma (Reconocimiento y Muestreo):** Asume el control en `CP2`, recolecta minerales geológicos o células de energía y arriba a `CP3`.
+* **Módulo 4 — Ingeniero Delta (Aproximación y Certificación Final):** Toma el vehículo en `CP3` y ejecuta la maniobra final de acople en la Meta (`CP4`).
+
+### 1.4 Pruebas Unitarias vs. Integración Continua (Pipeline de Vuelo)
+* **Test Unitario (`TEST UNITARIO`):** Cada ingeniero de vuelo compila y valida su módulo en aislamiento estricto. Si ocurre una colisión o desvío, el entorno restaura el estado sin afectar a sus pares.
+* **Pipeline Completo (`EJECUTAR PIPELINE COMPLETO`):** Tras la aprobación de los 4 unit tests, la tripulación ejecuta la secuencia maestra integral desde `CP0` hasta `CP4` sin interrupción.
 
 ---
 
@@ -31,13 +40,29 @@ Los comandos se escriben en el editor o se insertan mediante la botonera rápida
 | Comando | Descripción | Ejemplo de Uso | Efecto en el Rover |
 | :--- | :--- | :--- | :--- |
 | `AVANZAR(n)` | Desplaza el vehículo $n$ celdas hacia adelante en su dirección actual. | `AVANZAR(3)` | Avanza 3 casillas en línea recta. |
-| `GIRAR_DER()` | Rota el rover +90° en sentido horario. No cambia de casilla. | `GIRAR_DER()` | Si miraba al NORTE, ahora mira al ESTE. |
-| `GIRAR_IZQ()` | Rota el rover -90° en sentido antihorario. No cambia de casilla. | `GIRAR_IZQ()` | Si miraba al NORTE, ahora mira al OESTE. |
+| `GIRAR_DER()` | Rota el rover +90° en sentido horario respecto a su frente. | `GIRAR_DER()` | Gira hacia la derecha relativa del vehículo. |
+| `GIRAR_IZQ()` | Rota el rover -90° en sentido antihorario respecto a su frente. | `GIRAR_IZQ()` | Gira hacia la izquierda relativa del vehículo. |
 | `SCAN()` | Emite un pulso de radar en un radio de 3.5 celdas. | `SCAN()` | Detecta obstáculos y desenmascara anomalías. |
 | `LOOP(n) { ... }` | Estructura de bucle que repite las instrucciones interiores $n$ veces. | `LOOP(3) { AVANZAR(1) GIRAR_DER() }` | Optimiza memoria y comprime instrucciones. |
 
+### 2.1 Posición Inicial y Cinemática de Giro Relativo
 > [!IMPORTANT]
-> **El rover no cambia de coordenadas al girar.** `GIRAR_DER()` y `GIRAR_IZQ()` únicamente modifican el vector de orientación (Heading Vector).
+> **REGLA DE INSERCIÓN OFICIAL (CAMPAÑA HEFESTO-1):**  
+> En todos los niveles de campaña, el rover inicia en la casilla de la **Base `CP0`** apuntando con su frente hacia el **SUR (&darr;)** (hacia abajo en el plano cartesiano).  
+> **El rover no cambia de casilla al girar.** `GIRAR_DER()` y `GIRAR_IZQ()` rotan el vehículo 90° tomando como referencia el frente del propio rover (perspectiva egocéntrica).
+
+#### Matriz de Giros y Avance Vectorial:
+
+| Si el frente del rover mira hacia... | `AVANZAR(1)` desplaza la posición hacia: | `GIRAR_DER()` &#x21BB; rota el rover hacia: | `GIRAR_IZQ()` &#x21BA; rota el rover hacia: |
+| :--- | :---: | :---: | :---: |
+| **SUR (&darr;) [Estado Inicial en CP0]** | **Abajo en el mapa ($Y - 1$)** | **OESTE (&larr;)** | **ESTE (&rarr;)** |
+| **ESTE (&rarr;)** | **Derecha en el mapa ($X + 1$)** | **SUR (&darr;)** | **NORTE (&uarr;)** |
+| **NORTE (&uarr;)** | **Arriba en el mapa ($Y + 1$)** | **ESTE (&rarr;)** | **OESTE (&larr;)** |
+| **OESTE (&larr;)** | **Izquierda en el mapa ($X - 1$)** | **NORTE (&uarr;)** | **SUR (&darr;)** |
+
+> [!TIP]
+> **Estrategia Pedagógica Unplugged:**  
+> Se recomienda a los estudiantes utilizar la **ficha recortable del Rover (SUR) &#x25BC;** sobre la casilla `CP0` del mapa impreso. Al escribir cada instrucción en papel, rotar manualmente la pieza con los dedos sobre la mesa permite internalizar el giro relativo antes de ingresar el código en el simulador digital.
 
 ---
 

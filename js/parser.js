@@ -318,17 +318,17 @@ class TacticalParser {
         const instructionCount = countNodeInstructions(ast);
 
         let status = 'OPTIMAL';
-        let label = 'OPTIMAL';
-        let description = 'Resource budget optimal. Loop optimization rewarded.';
+        let label = 'MEMORIA ÓPTIMA';
+        let description = 'Uso óptimo de memoria. Bonificación de loop concedida.';
 
         if (instructionCount > 7) {
             status = 'OVERFLOW';
-            label = 'OVERFLOW WARNING';
-            description = 'Instruction threshold exceeded (> 7). Refactor sequence using LOOP constructs.';
+            label = 'LÍMITE EXCEDIDO (>7)';
+            description = 'Límite de memoria superado (> 7 comandos). Optimiza tu secuencia con LOOP().';
         } else if (instructionCount >= 5) {
             status = 'NOMINAL';
-            label = 'NOMINAL';
-            description = 'Instruction budget nominal (5 - 7 instructions). Consider loop compression.';
+            label = 'CONSUMO ESTÁNDAR';
+            description = 'Consumo nominal de memoria (5 a 7 comandos). Considera usar bucles LOOP.';
         }
 
         return {
