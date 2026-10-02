@@ -1,0 +1,1300 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fichas de Trabajo Tácticas - Impresión de Misiones</title>
+    <style>
+        :root {
+            --print-black: #111827;
+            --print-gray-dark: #374151;
+            --print-gray-light: #e5e7eb;
+            --print-gray-subtle: #f9fafb;
+            --accent-cyan: #0891b2;
+            --accent-green: #059669;
+            --accent-amber: #d97706;
+            --accent-purple: #7c3aed;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
+            background: #0f172a;
+            color: #1e293b;
+            line-height: 1.3;
+        }
+
+        /* Screen Toolbar */
+        .screen-toolbar {
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            background: #1e293b;
+            color: #f8fafc;
+            padding: 12px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            border-bottom: 2px solid #00f0ff;
+        }
+
+        .toolbar-title {
+            font-size: 15px;
+            font-weight: 700;
+            letter-spacing: 0.05em;
+            color: #00f0ff;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .toolbar-controls {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .toolbar-select {
+            background: #0f172a;
+            color: #f8fafc;
+            border: 1px solid #334155;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .toolbar-btn {
+            background: #00f0ff;
+            color: #0f172a;
+            border: none;
+            padding: 8px 18px;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 800;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.15s ease;
+        }
+
+        .toolbar-btn:hover {
+            background: #38bdf8;
+            transform: translateY(-1px);
+        }
+
+        .toolbar-link {
+            color: #94a3b8;
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 600;
+            padding: 6px 12px;
+            border: 1px solid #334155;
+            border-radius: 6px;
+            transition: all 0.15s ease;
+        }
+
+        .toolbar-link:hover {
+            color: #f8fafc;
+            border-color: #64748b;
+        }
+
+        /* Printable Sheets Container */
+        .sheets-container {
+            max-width: 900px;
+            margin: 24px auto;
+            padding: 0 16px 40px;
+            display: flex;
+            flex-direction: column;
+            gap: 32px;
+        }
+
+        /* Individual Worksheet (A4 / Letter Page) */
+        .worksheet-page {
+            background: #ffffff;
+            width: 100%;
+            min-height: 1100px;
+            padding: 24px 28px;
+            border-radius: 4px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        /* Header of the Worksheet */
+        .sheet-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            border-bottom: 2px solid var(--print-black);
+            padding-bottom: 10px;
+            gap: 12px;
+        }
+
+        .sheet-logo-group {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .sheet-system-title {
+            font-size: 16px;
+            font-weight: 900;
+            letter-spacing: 0.08em;
+            color: var(--print-black);
+            text-transform: uppercase;
+        }
+
+        .sheet-sub-title {
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--accent-cyan);
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+        }
+
+        .sheet-mission-badge {
+            background: var(--print-gray-subtle);
+            border: 1.5px solid var(--print-gray-dark);
+            padding: 4px 10px;
+            border-radius: 4px;
+            text-align: right;
+            font-size: 11px;
+            font-weight: 800;
+        }
+
+        /* Meta fields: Student, Team, Role */
+        .sheet-meta-grid {
+            display: grid;
+            grid-template-columns: 1.8fr 1.4fr 1fr;
+            gap: 10px;
+            background: var(--print-gray-subtle);
+            border: 1px solid var(--print-gray-light);
+            border-radius: 6px;
+            padding: 8px 12px;
+            font-size: 12px;
+        }
+
+        .meta-field {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .meta-label {
+            font-weight: 800;
+            color: var(--print-gray-dark);
+            font-size: 11px;
+            text-transform: uppercase;
+        }
+
+        .meta-line {
+            flex: 1;
+            border-bottom: 1.5px dotted #9ca3af;
+            height: 18px;
+        }
+
+        .meta-roles-row {
+            grid-column: 1 / -1;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding-top: 4px;
+            border-top: 1px dashed var(--print-gray-light);
+            font-size: 11px;
+        }
+
+        .role-check {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-weight: 700;
+        }
+
+        .role-box {
+            width: 13px;
+            height: 13px;
+            border: 1.5px solid var(--print-gray-dark);
+            border-radius: 2px;
+            display: inline-block;
+        }
+
+        /* Main Workspace: Grid + Code Section */
+        .sheet-main-content {
+            display: grid;
+            grid-template-columns: 1.15fr 0.85fr;
+            gap: 18px;
+            flex: 1;
+        }
+
+        /* Tactical Grid Container */
+        .grid-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .panel-heading {
+            font-size: 11px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--print-gray-dark);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--print-gray-light);
+            padding-bottom: 3px;
+        }
+
+        .tactical-grid-wrapper {
+            position: relative;
+            background: #ffffff;
+            border: 2px solid var(--print-black);
+            border-radius: 4px;
+            padding: 8px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* SVG Grid Styling */
+        .tactical-grid-svg {
+            width: 100%;
+            height: auto;
+            max-height: 480px;
+            display: block;
+        }
+
+        /* Grid Legend & Instructions */
+        .grid-legend-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px 12px;
+            font-size: 10px;
+            font-weight: 700;
+            padding: 6px 8px;
+            background: var(--print-gray-subtle);
+            border: 1px solid var(--print-gray-light);
+            border-radius: 4px;
+            margin-top: 4px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .legend-symbol {
+            font-size: 12px;
+            font-weight: 900;
+        }
+
+        /* Code Planning & Algorithm Section */
+        .code-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .heading-compass-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: #ffffff;
+            border: 1px solid var(--print-gray-light);
+            border-radius: 4px;
+            padding: 2px 7px;
+            font-size: 10px;
+            font-weight: 800;
+            color: var(--print-gray-dark);
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+        }
+
+        .heading-compass-badge svg {
+            display: block;
+        }
+
+        /* Mission Parameters Card */
+        .mission-params-card {
+            background: #ffffff;
+            border: 1.5px solid var(--print-black);
+            border-radius: 6px;
+            padding: 7px 9px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .params-route-bar {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: var(--print-gray-subtle);
+            border: 1px solid var(--print-gray-light);
+            border-radius: 4px;
+            padding: 3px 6px;
+            font-size: 9.5px;
+            flex-wrap: wrap;
+        }
+
+        .route-title {
+            font-weight: 800;
+            color: var(--print-gray-dark);
+            white-space: nowrap;
+        }
+
+        .route-waypoints {
+            font-family: monospace;
+            font-weight: 700;
+            color: #0369a1;
+        }
+
+        .params-slots-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 6px;
+        }
+
+        .param-slot {
+            background: var(--print-gray-subtle);
+            border: 1px solid var(--print-gray-light);
+            border-radius: 4px;
+            padding: 4px 6px;
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+        }
+
+        .param-slot.slot-accent {
+            background: #f8fafc;
+            border-color: #cbd5e1;
+            justify-content: space-between;
+        }
+
+        .slot-label {
+            font-size: 8.5px;
+            font-weight: 800;
+            letter-spacing: 0.04em;
+            color: #4b5563;
+            text-transform: uppercase;
+            white-space: nowrap;
+        }
+
+        .slot-coord-pill {
+            display: flex;
+            align-items: center;
+            justify-content: space-around;
+            background: #ffffff;
+            border: 1px solid #d1d5db;
+            border-radius: 3px;
+            padding: 2px 4px;
+            font-family: monospace;
+            font-size: 10.5px;
+            font-weight: 700;
+            color: #111827;
+        }
+
+        .slot-sep {
+            color: #cbd5e1;
+            font-weight: 400;
+        }
+
+        .slot-line {
+            display: inline-block;
+            border-bottom: 1.5px solid #111827;
+            min-width: 22px;
+            height: 12px;
+        }
+
+        .slot-heading-selectors {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: #ffffff;
+            border: 1px solid #d1d5db;
+            border-radius: 3px;
+            padding: 2px 5px;
+        }
+
+        .heading-opt {
+            display: inline-flex;
+            align-items: center;
+            gap: 2.5px;
+            font-family: monospace;
+            font-size: 10.5px;
+            font-weight: 800;
+            color: #1f2937;
+            white-space: nowrap;
+        }
+
+        .heading-box {
+            width: 9px;
+            height: 9px;
+            border: 1.5px solid #4b5563;
+            border-radius: 2px;
+            display: inline-block;
+        }
+
+        .slot-limit-badge {
+            background: #111827;
+            color: #ffffff;
+            font-family: monospace;
+            font-size: 10.5px;
+            font-weight: 800;
+            text-align: center;
+            padding: 3px 6px;
+            border-radius: 3px;
+            letter-spacing: 0.05em;
+        }
+
+        /* Table of Instructions */
+        .instruction-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 11px;
+        }
+
+        .instruction-table th {
+            background: var(--print-gray-dark);
+            color: #ffffff;
+            padding: 4px 6px;
+            font-weight: 800;
+            text-align: left;
+            font-size: 10px;
+            text-transform: uppercase;
+        }
+
+        .instruction-table td {
+            border: 1px solid #d1d5db;
+            padding: 4px 6px;
+            height: 25px;
+            vertical-align: middle;
+        }
+
+        .instruction-table td.col-line {
+            width: 28px;
+            text-align: center;
+            font-family: monospace;
+            font-weight: 800;
+            color: #6b7280;
+            background: var(--print-gray-subtle);
+        }
+
+        .instruction-table td.col-command {
+            font-family: 'Courier New', Courier, monospace;
+            font-weight: 700;
+        }
+
+        .instruction-table td.col-purpose {
+            font-size: 10px;
+            color: #4b5563;
+        }
+
+        /* Bottom Row: Score Estimator & Sign-off */
+        .sheet-footer-row {
+            display: grid;
+            grid-template-columns: 1.15fr 0.85fr;
+            gap: 18px;
+            margin-top: auto;
+            border-top: 1.5px solid var(--print-black);
+            padding-top: 10px;
+            font-size: 11px;
+        }
+
+        .scoring-card {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .scoring-pills-row {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+
+        .score-pill {
+            background: var(--print-gray-subtle);
+            border: 1px solid #d1d5db;
+            border-radius: 4px;
+            padding: 3px 6px;
+            font-size: 10px;
+            font-weight: 700;
+        }
+
+        .approval-card {
+            border: 1px dashed var(--print-gray-dark);
+            border-radius: 4px;
+            padding: 6px 10px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            font-size: 10px;
+        }
+
+        .approval-line {
+            border-bottom: 1px solid #9ca3af;
+            height: 16px;
+            margin-top: 6px;
+        }
+
+        /* Cutout Stamps Section */
+        .cutouts-sheet {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        .cutout-grid {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 10px;
+            padding: 12px;
+            border: 2px dashed #9ca3af;
+            border-radius: 6px;
+        }
+
+        .cutout-cell {
+            border: 1px dashed #6b7280;
+            padding: 8px 4px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            gap: 4px;
+            min-height: 64px;
+            border-radius: 4px;
+        }
+
+        .cutout-icon {
+            font-size: 20px;
+        }
+
+        .cutout-label {
+            font-size: 9px;
+            font-weight: 800;
+            text-transform: uppercase;
+        }
+
+        /* Printable Media Rules */
+        @media print {
+            body {
+                background: #ffffff !important;
+                color: #000000 !important;
+            }
+
+            .screen-toolbar {
+                display: none !important;
+            }
+
+            .sheets-container {
+                max-width: 100% !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                gap: 0 !important;
+            }
+
+            .worksheet-page {
+                box-shadow: none !important;
+                border-radius: 0 !important;
+                padding: 12mm 14mm !important;
+                min-height: 100vh !important;
+                page-break-after: always !important;
+                break-after: page !important;
+            }
+
+            .worksheet-page:last-child {
+                page-break-after: avoid !important;
+                break-after: avoid !important;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- SCREEN PRINTING TOOLBAR -->
+    <header class="screen-toolbar">
+        <div class="toolbar-title">
+            <span>&#x1F5B6;&#xFE0F; CENTRO DE IMPRESIÓN TÁCTICA</sp            <span style="color: #94a3b8; font-size: 13px;">// HOJAS DE RUTA Y PLANIFICACIÓN TÁCTICA</span>
+        </div>
+
+        <div class="toolbar-controls">
+            <label for="sheet-selector" style="font-size: 13px; font-weight: 700; color: #cbd5e1;">MOSTRAR:</label>
+            <select id="sheet-selector" class="toolbar-select">
+                <option value="ALL">TODAS LAS FICHAS (CUADERNILLO COMPLETO)</option>
+                <option value="UNIVERSAL">FICHA 0: PLANTILLA UNIVERSAL (EN BLANCO)</option>
+                <option value="LEVEL-1">NIVEL 1: CORREDOR CON OBSTÁCULOS (10x10)</option>
+                <option value="LEVEL-2">NIVEL 2: EL LABERINTO DE PILONES (12x12)</option>
+                <option value="LEVEL-3">NIVEL 3: DETECCIÓN EN LA GRIETA (12x12)</option>
+                <option value="LEVEL-4">NIVEL 4: MUESTREO CIENTÍFICO (12x12)</option>
+                <option value="LEVEL-5">NIVEL 5: CAMPO MINADO Y FISURAS (12x12)</option>
+                <option value="LEVEL-6">NIVEL 6: CANAL EN ZIGZAG (12x12)</option>
+                <option value="LEVEL-7">NIVEL 7: FALLA TECTÓNICA TRANSVERSAL (12x12)</option>
+                <option value="LEVEL-8">NIVEL 8: LABERINTO DE BASALTO (12x12)</option>
+                <option value="LEVEL-9">NIVEL 9: EXPEDICIÓN GEO-ESPACIAL (14x14)</option>
+                <option value="LEVEL-10">NIVEL 10: GRAN BRECHA DEL TITÁN (14x14)</option>
+                <option value="CUTOUTS">FICHA ANEXA: PIEZAS Y SÍMBOLOS RECORTABLES</option>
+            </select>
+
+            <button type="button" class="toolbar-btn" onclick="window.print()">
+                &#x1F5A8;&#xFE0F; IMPRIMIR AHORA (CTRL + P)
+            </button>
+
+            <a href="index.html" class="toolbar-link">&#x25C0; VOLVER AL SIMULADOR 3D</a>
+        </div>
+    </header>
+
+    <!-- PRINTABLE SHEETS CONTAINER -->
+    <div class="sheets-container" id="printable-sheets-container">
+
+        <!-- 1. UNIVERSAL WORKSHEET (BLANK / CUSTOM MISSION) -->
+        <article class="worksheet-page" id="sheet-universal" data-sheet-id="UNIVERSAL">
+            <header class="sheet-header">
+                <div class="sheet-logo-group">
+                    <h1 class="sheet-system-title">SIMULADOR VECTORIAL TÁCTICO // MISIÓN EN PAPEL</h1>
+                    <span class="sheet-sub-title">Hoja de Diseño y Planificación de Algoritmos Autónomos</span>
+                </div>
+                <div class="sheet-mission-badge">
+                    PLANTILLA UNIVERSAL<br>
+                    <span style="font-size: 10px; color: #4b5563;">CUADRÍCULA 12x12</span>
+                </div>
+            </header>
+
+            <section class="sheet-meta-grid">
+                <div class="meta-field">
+                    <span class="meta-label">Operador / Especialista:</span>
+                    <span class="meta-line"></span>
+                </div>
+                <div class="meta-field">
+                    <span class="meta-label">Equipo / Tripulación:</span>
+                    <span class="meta-line"></span>
+                </div>
+                <div class="meta-field">
+                    <span class="meta-label">Fecha:</span>
+                    <span class="meta-line"></span>
+                </div>
+                <div class="meta-roles-row">
+                    <span class="meta-label">Módulo Asignado:</span>
+                    <label class="role-check"><span class="role-box"></span> MOD 1 (Alfa: CP0 &rarr; CP1)</label>
+                    <label class="role-check"><span class="role-box"></span> MOD 2 (Beta: CP1 &rarr; CP2)</label>
+                    <label class="role-check"><span class="role-box"></span> MOD 3 (Gamma: CP2 &rarr; CP3)</label>
+                    <label class="role-check"><span class="role-box"></span> MOD 4 (Delta: CP3 &rarr; CP4)</label>
+                </div>
+            </section>
+
+            <div class="sheet-main-content">
+                <!-- GRID PANEL -->
+                <div class="grid-panel">
+                    <div class="panel-heading">
+                        <span>&#x1F4CD; PLANO CARTESIANO DE NAVEGACIÓN</span>
+                        <div class="heading-compass-badge">
+                            <svg width="20" height="20" viewBox="-14 -14 28 28">
+                                <circle cx="0" cy="0" r="12" fill="#ffffff" stroke="#374151" stroke-width="1.5"/>
+                                <polygon points="0,-10 3,0 0,-1.5 -3,0" fill="#dc2626"/>
+                                <polygon points="0,10 3,0 0,1.5 -3,0" fill="#4b5563"/>
+                                <text x="0" y="-12" font-size="7" font-weight="900" text-anchor="middle" fill="#dc2626">N</text>
+                            </svg>
+                            <span>NORTE &uarr; | ESTE &rarr;</span>
+                        </div>
+                    </div>
+
+                    <div class="tactical-grid-wrapper">
+                        <!-- Dynamically drawn 12x12 SVG Grid -->
+                        <svg class="tactical-grid-svg" viewBox="0 0 460 460" xmlns="http://www.w3.org/2000/svg">
+                            <!-- Background -->
+                            <rect x="30" y="30" width="400" height="400" fill="#ffffff" stroke="#111827" stroke-width="2"/>
+                            
+                            <!-- Grid lines & Coordinate Numbers -->
+                            <g stroke="#d1d5db" stroke-width="1">
+                                <!-- Horizontal lines -->
+                                <line x1="30" y1="63.3" x2="430" y2="63.3"/>
+                                <line x1="30" y1="96.6" x2="430" y2="96.6"/>
+                                <line x1="30" y1="130.0" x2="430" y2="130.0"/>
+                                <line x1="30" y1="163.3" x2="430" y2="163.3"/>
+                                <line x1="30" y1="196.6" x2="430" y2="196.6"/>
+                                <line x1="30" y1="230.0" x2="430" y2="230.0"/>
+                                <line x1="30" y1="263.3" x2="430" y2="263.3"/>
+                                <line x1="30" y1="296.6" x2="430" y2="296.6"/>
+                                <line x1="30" y1="330.0" x2="430" y2="330.0"/>
+                                <line x1="30" y1="363.3" x2="430" y2="363.3"/>
+                                <line x1="30" y1="396.6" x2="430" y2="396.6"/>
+
+                                <!-- Vertical lines -->
+                                <line x1="63.3" y1="30" x2="63.3" y2="430"/>
+                                <line x1="96.6" y1="30" x2="96.6" y2="430"/>
+                                <line x1="130.0" y1="30" x2="130.0" y2="430"/>
+                                <line x1="163.3" y1="30" x2="163.3" y2="430"/>
+                                <line x1="196.6" y1="30" x2="196.6" y2="430"/>
+                                <line x1="230.0" y1="30" x2="230.0" y2="430"/>
+                                <line x1="263.3" y1="30" x2="263.3" y2="430"/>
+                                <line x1="296.6" y1="30" x2="296.6" y2="430"/>
+                                <line x1="330.0" y1="30" x2="330.0" y2="430"/>
+                                <line x1="363.3" y1="30" x2="363.3" y2="430"/>
+                                <line x1="396.6" y1="30" x2="396.6" y2="430"/>
+                            </g>
+
+                            <!-- Y Axis labels (Left) -->
+                            <g font-family="monospace" font-size="11" font-weight="bold" fill="#374151" text-anchor="middle">
+                                <text x="16" y="52">12</text>
+                                <text x="16" y="85">11</text>
+                                <text x="16" y="118">10</text>
+                                <text x="16" y="152">9</text>
+                                <text x="16" y="185">8</text>
+                                <text x="16" y="218">7</text>
+                                <text x="16" y="251">6</text>
+                                <text x="16" y="284">5</text>
+                                <text x="16" y="317">4</text>
+                                <text x="16" y="350">3</text>
+                                <text x="16" y="384">2</text>
+                                <text x="16" y="417">1</text>
+                                <text x="16" y="235" transform="rotate(-90 16 235)" font-size="9" fill="#9ca3af">FILAS (EJE Y)</text>
+                            </g>
+
+                            <!-- X Axis labels (Bottom) -->
+                            <g font-family="monospace" font-size="11" font-weight="bold" fill="#374151" text-anchor="middle">
+                                <text x="46.6" y="448">1</text>
+                                <text x="80.0" y="448">2</text>
+                                <text x="113.3" y="448">3</text>
+                                <text x="146.6" y="448">4</text>
+                                <text x="180.0" y="448">5</text>
+                                <text x="213.3" y="448">6</text>
+                                <text x="246.6" y="448">7</text>
+                                <text x="280.0" y="448">8</text>
+                                <text x="313.3" y="448">9</text>
+                                <text x="346.6" y="448">10</text>
+                                <text x="380.0" y="448">11</text>
+                                <text x="413.3" y="448">12</text>
+                                <text x="230" y="458" font-size="9" fill="#9ca3af">COLUMNAS (EJE X)</text>
+                            </g>
+                        </svg>
+                    </div>
+
+                    <div class="grid-legend-row">
+                        <div class="legend-item"><span class="legend-symbol" style="color: #0284c7;">&#x2691;</span> Base (CP0)</div>
+                        <div class="legend-item"><span class="legend-symbol" style="color: #059669;">&#x25C9;</span> Baliza (CP)</div>
+                        <div class="legend-item"><span class="legend-symbol" style="color: #ea580c;">&#x25B2;</span> Pilón</div>
+                        <div class="legend-item"><span class="legend-symbol" style="color: #dc2626;">&#x2622;</span> Mina</div>
+                        <div class="legend-item"><span class="legend-symbol" style="color: #7c3aed;">&#x2B22;</span> Geoda (+100)</div>
+                        <div class="legend-item"><span class="legend-symbol" style="color: #0d9488;">&#x25C6;</span> Energía (+50)</div>
+                        <div class="legend-item"><span class="legend-symbol" style="color: #9333ea;">&#x2668;</span> Grieta (+150)</div>
+                    </div>
+                </div>
+
+                <!-- CODE & ALGORITHM PANEL -->
+                <div class="code-panel">
+                    <div class="panel-heading">
+                        <span>&#x1F4BB; ESPECIFICACIÓN DEL ALGORITMO</span>
+                        <span>MÁX. 10 LÍNEAS</span>
+                    </div>
+
+                    <div class="mission-params-card">
+                        <div class="params-slots-grid">
+                            <div class="param-slot">
+                                <span class="slot-label">INSERCIÓN (CP INICIAL)</span>
+                                <div class="slot-coord-pill">
+                                    <span>X: <span class="slot-line">&nbsp;&nbsp;&nbsp;&nbsp;</span></span>
+                                    <span class="slot-sep">|</span>
+                                    <span>Y: <span class="slot-line">&nbsp;&nbsp;&nbsp;&nbsp;</span></span>
+                                </div>
+                            </div>
+
+                            <div class="param-slot">
+                                <span class="slot-label">RUMBO INICIAL</span>
+                                <div class="slot-heading-selectors">
+                                    <span class="heading-opt"><span class="heading-box"></span>N</span>
+                                    <span class="heading-opt"><span class="heading-box"></span>E</span>
+                                    <span class="heading-opt"><span class="heading-box"></span>S</span>
+                                    <span class="heading-opt"><span class="heading-box"></span>O</span>
+                                </div>
+                            </div>
+
+                            <div class="param-slot">
+                                <span class="slot-label">DESTINO (CP OBJETIVO)</span>
+                                <div class="slot-coord-pill">
+                                    <span>X: <span class="slot-line">&nbsp;&nbsp;&nbsp;&nbsp;</span></span>
+                                    <span class="slot-sep">|</span>
+                                    <span>Y: <span class="slot-line">&nbsp;&nbsp;&nbsp;&nbsp;</span></span>
+                                </div>
+                            </div>
+
+                            <div class="param-slot slot-accent">
+                                <span class="slot-label">MEMORIA MÁXIMA</span>
+                                <div class="slot-limit-badge">10 COMANDOS</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <table class="instruction-table">
+                        <thead>
+                            <tr>
+                                <th style="width: 32px;">L#</th>
+                                <th>Instrucción Táctica</th>
+                                <th style="width: 90px;">Objetivo / Notas</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr><td class="col-line">01</td><td class="col-command"></td><td class="col-purpose"></td></tr>
+                            <tr><td class="col-line">02</td><td class="col-command"></td><td class="col-purpose"></td></tr>
+                            <tr><td class="col-line">03</td><td class="col-command"></td><td class="col-purpose"></td></tr>
+                            <tr><td class="col-line">04</td><td class="col-command"></td><td class="col-purpose"></td></tr>
+                            <tr><td class="col-line">05</td><td class="col-command"></td><td class="col-purpose"></td></tr>
+                            <tr><td class="col-line">06</td><td class="col-command"></td><td class="col-purpose"></td></tr>
+                            <tr><td class="col-line">07</td><td class="col-command"></td><td class="col-purpose"></td></tr>
+                            <tr><td class="col-line">08</td><td class="col-command"></td><td class="col-purpose"></td></tr>
+                            <tr><td class="col-line">09</td><td class="col-command"></td><td class="col-purpose"></td></tr>
+                            <tr><td class="col-line">10</td><td class="col-command"></td><td class="col-purpose"></td></tr>
+                        </tbody>
+                    </table>
+
+                    <div style="font-size: 10px; color: #4b5563; background: #f3f4f6; border-left: 3px solid #0891b2; padding: 4px 8px; border-radius: 2px;">
+                        <strong>SINTAXIS PERMITIDA:</strong><br>
+                        <code>AVANZAR(n)</code> &bull; <code>GIRAR_DER()</code> &bull; <code>GIRAR_IZQ()</code> &bull; <code>SCAN()</code> &bull; <code>LOOP(n) { ... }</code>
+                    </div>
+                </div>
+            </div>
+
+            <footer class="sheet-footer-row">
+                <div class="scoring-card">
+                    <span style="font-weight: 800; font-size: 10px; text-transform: uppercase;">Estimación de Puntos Tácticos:</span>
+                    <div class="scoring-pills-row">
+                        <span class="score-pill">Baliza: +250 PTS</span>
+                        <span class="score-pill">Geoda: +100 PTS</span>
+                        <span class="score-pill">Energía: +50 PTS</span>
+                        <span class="score-pill">Radar: +150 PTS</span>
+                        <span class="score-pill">Memoria: +200 PTS</span>
+                    </div>
+                </div>
+                <div class="approval-card">
+                    <span style="font-weight: 800; font-size: 10px;">REVISIÓN DE RELEVO EN EQUIPO:</span>
+                    <span>El siguiente tripulante verifica coordenadas de entrega:</span>
+                    <div class="approval-line"></div>
+                </div>
+            </footer>
+        </article>
+
+        <!-- 2. CAMPAIGN LEVEL WORKSHEETS GENERATOR CONTAINER -->
+        <div id="campaign-sheets-host"></div>
+
+        <!-- 3. CUTOUTS & SYMBOLS SHEET -->
+        <article class="worksheet-page" id="sheet-cutouts" data-sheet-id="CUTOUTS">
+            <header class="sheet-header">
+                <div class="sheet-logo-group">
+                    <h1 class="sheet-system-title">BANCO DE PIEZAS Y SÍMBOLOS RECORTABLES</h1>
+                    <span class="sheet-sub-title">Elementos Manipulativos para Simulación Unplugged en Mesa</span>
+                </div>
+                <div class="sheet-mission-badge">
+                    ANEXO TÁCTICO<br>
+                    <span style="font-size: 10px; color: #4b5563;">RECORTAR CON TIJERAS</span>
+                </div>
+            </header>
+
+            <div style="font-size: 12px; color: #374151; padding: 6px 0;">
+                Instrucciones: Recorta estas fichas cuadradas para colocarlas o desplazarlas sobre la cuadrícula del mapa impreso. Permite ensayar la cinemática del rover, las rotaciones de 90° y la ubicación exacta de los obstáculos.
+            </div>
+
+            <div class="cutouts-sheet">
+                <div class="panel-heading">&#x1F690; VEHÍCULOS ROVER Y ORIENTACIONES VECTORIALES</div>
+                <div class="cutout-grid">
+                    <div class="cutout-cell">
+                        <span class="cutout-icon" style="color: #0284c7;">&#x25B2;</span>
+                        <span class="cutout-label">ROVER (NORTE)</span>
+                    </div>
+                    <div class="cutout-cell">
+                        <span class="cutout-icon" style="color: #0284c7;">&#x25B6;</span>
+                        <span class="cutout-label">ROVER (ESTE)</span>
+                    </div>
+                    <div class="cutout-cell">
+                        <span class="cutout-icon" style="color: #0284c7;">&#x25BC;</span>
+                        <span class="cutout-label">ROVER (SUR)</span>
+                    </div>
+                    <div class="cutout-cell">
+                        <span class="cutout-icon" style="color: #0284c7;">&#x25C0;</span>
+                        <span class="cutout-label">ROVER (OESTE)</span>
+                    </div>
+                    <div class="cutout-cell">
+                        <span class="cutout-icon" style="color: #0284c7;">&#x25B2;</span>
+                        <span class="cutout-label">ROVER (COPIA)</span>
+                    </div>
+                    <div class="cutout-cell">
+                        <span class="cutout-icon" style="color: #0284c7;">&#x2691;</span>
+                        <span class="cutout-label">BASE CP0</span>
+                    </div>
+                </div>
+
+                <div class="panel-heading">&#x1F4CD; BALIZAS DE CONTROL DE RELEVO (CHECKPOINTS)</div>
+                <div class="cutout-grid">
+                    <div class="cutout-cell">
+                        <span class="cutout-icon" style="color: #0284c7;">&#x25C9;</span>
+                        <span class="cutout-label">BALIZA CP1</span>
+                    </div>
+                    <div class="cutout-cell">
+                        <span class="cutout-icon" style="color: #c026d3;">&#x25C9;</span>
+                        <span class="cutout-label">BALIZA CP2</span>
+                    </div>
+                    <div class="cutout-cell">
+                        <span class="cutout-icon" style="color: #ea580c;">&#x25C9;</span>
+                        <span class="cutout-label">BALIZA CP3</span>
+                    </div>
+                    <div class="cutout-cell">
+                        <span class="cutout-icon" style="color: #059669;">&#x25C9;</span>
+                        <span class="cutout-label">META CP4</span>
+                    </div>
+                    <div class="cutout-cell">
+                        <span class="cutout-icon" style="color: #eab308;">&#x25C9;</span>
+                        <span class="cutout-label">BALIZA CP5</span>
+                    </div>
+                    <div class="cutout-cell">
+                        <span class="cutout-icon" style="color: #06b6d4;">&#x25C9;</span>
+                        <span class="cutout-label">BALIZA CP6</span>
+                    </div>
+                </div>
+
+                <div class="panel-heading">&#x26A0;&#xFE0F; OBSTÁCULOS DEFENSIVOS Y PELIGROS</div>
+                <div class="cutout-grid">
+                    <div class="cutout-cell"><span class="cutout-icon" style="color: #ea580c;">&#x25B2;</span><span class="cutout-label">PILÓN 1</span></div>
+                    <div class="cutout-cell"><span class="cutout-icon" style="color: #ea580c;">&#x25B2;</span><span class="cutout-label">PILÓN 2</span></div>
+                    <div class="cutout-cell"><span class="cutout-icon" style="color: #ea580c;">&#x25B2;</span><span class="cutout-label">PILÓN 3</span></div>
+                    <div class="cutout-cell"><span class="cutout-icon" style="color: #ea580c;">&#x25B2;</span><span class="cutout-label">PILÓN 4</span></div>
+                    <div class="cutout-cell"><span class="cutout-icon" style="color: #dc2626;">&#x2622;</span><span class="cutout-label">MINA 1</span></div>
+                    <div class="cutout-cell"><span class="cutout-icon" style="color: #dc2626;">&#x2622;</span><span class="cutout-label">MINA 2</span></div>
+                </div>
+
+                <div class="panel-heading">&#x1F48E; RECURSOS CIENTÍFICOS Y ANOMALÍAS</div>
+                <div class="cutout-grid">
+                    <div class="cutout-cell"><span class="cutout-icon" style="color: #7c3aed;">&#x2B22;</span><span class="cutout-label">GEODA (+100)</span></div>
+                    <div class="cutout-cell"><span class="cutout-icon" style="color: #7c3aed;">&#x2B22;</span><span class="cutout-label">GEODA (+100)</span></div>
+                    <div class="cutout-cell"><span class="cutout-icon" style="color: #7c3aed;">&#x2B22;</span><span class="cutout-label">GEODA (+100)</span></div>
+                    <div class="cutout-cell"><span class="cutout-icon" style="color: #0d9488;">&#x25C6;</span><span class="cutout-label">ENERGÍA (+50)</span></div>
+                    <div class="cutout-cell"><span class="cutout-icon" style="color: #0d9488;">&#x25C6;</span><span class="cutout-label">ENERGÍA (+50)</span></div>
+                    <div class="cutout-cell"><span class="cutout-icon" style="color: #9333ea;">&#x2668;</span><span class="cutout-label">GRIETA SCAN</span></div>
+                </div>
+            </div>
+        </article>
+
+    </div>
+
+    <!-- SCRIPT FOR DYNAMIC CAMPAIGN LEVELS GENERATION -->
+    <script src="js/app.js"></script>
+    <script>
+        /**
+         * Generates an SVG grid with level waypoints, pylons, mines, and collectables.
+         * @param {Object} level
+         * @returns {string} SVG markup
+         */
+        function renderLevelSvgGrid(level) {
+            const size = level.gridSize;
+            const cellSize = 400 / size;
+            const startOffset = 30;
+
+            let gridLines = '';
+            for (let i = 1; i < size; i++) {
+                const pos = startOffset + i * cellSize;
+                gridLines += `<line x1="${startOffset}" y1="${pos.toFixed(1)}" x2="${startOffset + 400}" y2="${pos.toFixed(1)}" stroke="#e5e7eb" stroke-width="1"/>`;
+                gridLines += `<line x1="${pos.toFixed(1)}" y1="${startOffset}" x2="${pos.toFixed(1)}" y2="${startOffset + 400}" stroke="#e5e7eb" stroke-width="1"/>`;
+            }
+
+            let axisLabels = '';
+            for (let i = 1; i <= size; i++) {
+                const xPos = startOffset + (i - 0.5) * cellSize;
+                const yVal = size - i + 1;
+                const yPos = startOffset + (i - 0.5) * cellSize + 4;
+                axisLabels += `<text x="${xPos.toFixed(1)}" y="446" font-size="10" font-family="monospace" font-weight="bold" fill="#374151" text-anchor="middle">${i}</text>`;
+                axisLabels += `<text x="18" y="${yPos.toFixed(1)}" font-size="10" font-family="monospace" font-weight="bold" fill="#374151" text-anchor="middle">${yVal}</text>`;
+            }
+
+            let entitiesSvg = '';
+            if (Array.isArray(level.entities)) {
+                for (const ent of level.entities) {
+                    const cx = startOffset + (ent.x - 0.5) * cellSize;
+                    const cy = startOffset + ((size - ent.y) + 0.5) * cellSize;
+
+                    if (ent.type === 'PYLON') {
+                        entitiesSvg += `
+                            <g transform="translate(${cx.toFixed(1)}, ${cy.toFixed(1)})">
+                                <polygon points="0,-12 11,8 -11,8" fill="#f97316" stroke="#c2410c" stroke-width="1.5"/>
+                                <text y="4" font-size="9" font-weight="900" fill="#ffffff" text-anchor="middle">▲</text>
+                            </g>
+                        `;
+                    } else if (ent.type === 'MINE') {
+                        entitiesSvg += `
+                            <g transform="translate(${cx.toFixed(1)}, ${cy.toFixed(1)})">
+                                <circle cx="0" cy="0" r="10" fill="#fef2f2" stroke="#dc2626" stroke-width="2"/>
+                                <text y="4" font-size="11" font-weight="900" fill="#dc2626" text-anchor="middle">☢</text>
+                            </g>
+                        `;
+                    } else if (ent.type === 'ROCK_SAMPLE') {
+                        entitiesSvg += `
+                            <g transform="translate(${cx.toFixed(1)}, ${cy.toFixed(1)})">
+                                <polygon points="0,-10 9,-5 9,6 0,11 -9,6 -9,-5" fill="#f5f3ff" stroke="#7c3aed" stroke-width="2"/>
+                                <text y="4" font-size="9" font-weight="900" fill="#7c3aed" text-anchor="middle">⬢</text>
+                            </g>
+                        `;
+                    } else if (ent.type === 'ENERGY') {
+                        entitiesSvg += `
+                            <g transform="translate(${cx.toFixed(1)}, ${cy.toFixed(1)})">
+                                <polygon points="0,-10 10,0 0,10 -10,0" fill="#f0fdfa" stroke="#0d9488" stroke-width="2"/>
+                                <text y="3" font-size="9" font-weight="900" fill="#0d9488" text-anchor="middle">◆</text>
+                            </g>
+                        `;
+                    } else if (ent.type === 'ANOMALY') {
+                        entitiesSvg += `
+                            <g transform="translate(${cx.toFixed(1)}, ${cy.toFixed(1)})">
+                                <circle cx="0" cy="0" r="10" fill="#faf5ff" stroke="#9333ea" stroke-dasharray="3,2" stroke-width="2"/>
+                                <text y="4" font-size="11" font-weight="900" fill="#9333ea" text-anchor="middle">♨</text>
+                            </g>
+                        `;
+                    }
+                }
+            }
+
+            let waypointsSvg = '';
+            if (Array.isArray(level.waypoints)) {
+                for (let idx = 0; idx < level.waypoints.length; idx++) {
+                    const wp = level.waypoints[idx];
+                    const cx = startOffset + (wp.x - 0.5) * cellSize;
+                    const cy = startOffset + ((size - wp.y) + 0.5) * cellSize;
+                    const isBase = idx === 0;
+                    const isMeta = idx === level.waypoints.length - 1;
+                    const label = isBase ? 'CP0' : (isMeta ? `CP${idx}` : `CP${idx}`);
+                    const badgeColor = isBase ? '#0284c7' : (isMeta ? '#059669' : '#d946ef');
+
+                    waypointsSvg += `
+                        <g transform="translate(${cx.toFixed(1)}, ${cy.toFixed(1)})">
+                            <circle cx="0" cy="0" r="12" fill="${badgeColor}" stroke="#111827" stroke-width="2"/>
+                            <text y="3.5" font-size="8.5" font-family="monospace" font-weight="900" fill="#ffffff" text-anchor="middle">${label}</text>
+                        </g>
+                    `;
+                }
+            }
+
+            return `
+                <svg class="tactical-grid-svg" viewBox="0 0 460 460" xmlns="http://www.w3.org/2000/svg">
+                    <rect x="${startOffset}" y="${startOffset}" width="400" height="400" fill="#ffffff" stroke="#111827" stroke-width="2"/>
+                    <g>${gridLines}</g>
+                    <g>${entitiesSvg}</g>
+                    <g>${waypointsSvg}</g>
+                    <g>${axisLabels}</g>
+                </svg>
+            `;
+        }
+
+        /**
+         * Populates campaign worksheets inside host container.
+         */
+        function buildCampaignSheets() {
+            const host = document.getElementById('campaign-sheets-host');
+            if (!host || typeof TacticalApp === 'undefined' || !TacticalApp.CAMPAIGN_LEVELS) return;
+
+            host.innerHTML = '';
+            for (const lvl of TacticalApp.CAMPAIGN_LEVELS) {
+                const article = document.createElement('article');
+                article.className = 'worksheet-page';
+                article.id = `sheet-level-${lvl.id}`;
+                article.dataset.sheetId = `LEVEL-${lvl.id}`;
+
+                let waypointsText = '';
+                if (lvl.waypoints) {
+                    waypointsText = lvl.waypoints.map((wp, idx) => `CP${idx}: (${wp.x}, ${wp.y})`).join(' &rarr; ');
+                }
+
+                article.innerHTML = `
+                    <header class="sheet-header">
+                        <div class="sheet-logo-group">
+                            <h1 class="sheet-system-title">${lvl.title}</h1>
+                            <span class="sheet-sub-title">Misión Táctica Certificada // ${lvl.objective}</span>
+                        </div>
+                        <div class="sheet-mission-badge">
+                            CAMPAÑA NIVEL ${lvl.id}<br>
+                            <span style="font-size: 10px; color: #4b5563;">CUADRÍCULA ${lvl.gridSize}x${lvl.gridSize}</span>
+                        </div>
+                    </header>
+
+                    <section class="sheet-meta-grid">
+                        <div class="meta-field">
+                            <span class="meta-label">Operador / Especialista:</span>
+                            <span class="meta-line"></span>
+                        </div>
+                        <div class="meta-field">
+                            <span class="meta-label">Equipo / Tripulación:</span>
+                            <span class="meta-line"></span>
+                        </div>
+                        <div class="meta-field">
+                            <span class="meta-label">Fecha:</span>
+                            <span class="meta-line"></span>
+                        </div>
+                        <div class="meta-roles-row">
+                            <span class="meta-label">Módulo Asignado:</span>
+                            <label class="role-check"><span class="role-box"></span> MOD 1 (Alfa)</label>
+                            <label class="role-check"><span class="role-box"></span> MOD 2 (Beta)</label>
+                            <label class="role-check"><span class="role-box"></span> MOD 3 (Gamma)</label>
+                            <label class="role-check"><span class="role-box"></span> MOD 4 (Delta)</label>
+                        </div>
+                    </section>
+
+                    <div class="sheet-main-content">
+                        <div class="grid-panel">
+                            <div class="panel-heading">
+                                <span>&#x1F4CD; MAPA DEL SECTOR TÁCTICO</span>
+                                <div class="heading-compass-badge">
+                                    <svg width="20" height="20" viewBox="-14 -14 28 28">
+                                        <circle cx="0" cy="0" r="12" fill="#ffffff" stroke="#374151" stroke-width="1.5"/>
+                                        <polygon points="0,-10 3,0 0,-1.5 -3,0" fill="#dc2626"/>
+                                        <polygon points="0,10 3,0 0,1.5 -3,0" fill="#4b5563"/>
+                                        <text x="0" y="-12" font-size="7" font-weight="900" text-anchor="middle" fill="#dc2626">N</text>
+                                    </svg>
+                                    <span>NORTE &uarr; | ESTE &rarr;</span>
+                                </div>
+                            </div>
+
+                            <div class="tactical-grid-wrapper">
+                                ${renderLevelSvgGrid(lvl)}
+                            </div>
+
+                            <div class="grid-legend-row">
+                                <div class="legend-item"><span class="legend-symbol" style="color: #0284c7;">&#x25C9;</span> Base CP0</div>
+                                <div class="legend-item"><span class="legend-symbol" style="color: #059669;">&#x25C9;</span> Meta CP4</div>
+                                <div class="legend-item"><span class="legend-symbol" style="color: #ea580c;">▲</span> Pilón</div>
+                                <div class="legend-item"><span class="legend-symbol" style="color: #dc2626;">☢</span> Mina</div>
+                                <div class="legend-item"><span class="legend-symbol" style="color: #7c3aed;">⬢</span> Geoda (+100)</div>
+                                <div class="legend-item"><span class="legend-symbol" style="color: #0d9488;">◆</span> Energía (+50)</div>
+                                <div class="legend-item"><span class="legend-symbol" style="color: #9333ea;">♨</span> Grieta (+150)</div>
+                            </div>
+                        </div>
+
+                        <div class="code-panel">
+                            <div class="panel-heading">
+                                <span>&#x1F4BB; ESPECIFICACIÓN DEL ALGORITMO</span>
+                                <span>MÁX. 10 LÍNEAS</span>
+                            </div>
+
+                            <div class="mission-params-card">
+                                ${waypointsText ? `
+                                <div class="params-route-bar">
+                                    <span class="route-title">SECUENCIA DE BALIZAS:</span>
+                                    <span class="route-waypoints">${waypointsText}</span>
+                                </div>` : ''}
+                                <div class="params-slots-grid">
+                                    <div class="param-slot">
+                                        <span class="slot-label">INSERCIÓN (CP INICIAL)</span>
+                                        <div class="slot-coord-pill">
+                                            <span>X: <span class="slot-line">&nbsp;&nbsp;&nbsp;&nbsp;</span></span>
+                                            <span class="slot-sep">|</span>
+                                            <span>Y: <span class="slot-line">&nbsp;&nbsp;&nbsp;&nbsp;</span></span>
+                                        </div>
+                                    </div>
+
+                                    <div class="param-slot">
+                                        <span class="slot-label">RUMBO INICIAL</span>
+                                        <div class="slot-heading-selectors">
+                                            <span class="heading-opt"><span class="heading-box"></span>N</span>
+                                            <span class="heading-opt"><span class="heading-box"></span>E</span>
+                                            <span class="heading-opt"><span class="heading-box"></span>S</span>
+                                            <span class="heading-opt"><span class="heading-box"></span>O</span>
+                                        </div>
+                                    </div>
+
+                                    <div class="param-slot">
+                                        <span class="slot-label">DESTINO (CP OBJETIVO)</span>
+                                        <div class="slot-coord-pill">
+                                            <span>X: <span class="slot-line">&nbsp;&nbsp;&nbsp;&nbsp;</span></span>
+                                            <span class="slot-sep">|</span>
+                                            <span>Y: <span class="slot-line">&nbsp;&nbsp;&nbsp;&nbsp;</span></span>
+                                        </div>
+                                    </div>
+
+                                    <div class="param-slot slot-accent">
+                                        <span class="slot-label">MEMORIA MÁXIMA</span>
+                                        <div class="slot-limit-badge">10 COMANDOS</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <table class="instruction-table">
+                                <thead>
+                                    <tr>
+                                        <th style="width: 32px;">L#</th>
+                                        <th>Instrucción Táctica</th>
+                                        <th style="width: 90px;">Notas / Rumbo</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr><td class="col-line">01</td><td class="col-command"></td><td class="col-purpose"></td></tr>
+                                    <tr><td class="col-line">02</td><td class="col-command"></td><td class="col-purpose"></td></tr>
+                                    <tr><td class="col-line">03</td><td class="col-command"></td><td class="col-purpose"></td></tr>
+                                    <tr><td class="col-line">04</td><td class="col-command"></td><td class="col-purpose"></td></tr>
+                                    <tr><td class="col-line">05</td><td class="col-command"></td><td class="col-purpose"></td></tr>
+                                    <tr><td class="col-line">06</td><td class="col-command"></td><td class="col-purpose"></td></tr>
+                                    <tr><td class="col-line">07</td><td class="col-command"></td><td class="col-purpose"></td></tr>
+                                    <tr><td class="col-line">08</td><td class="col-command"></td><td class="col-purpose"></td></tr>
+                                    <tr><td class="col-line">09</td><td class="col-command"></td><td class="col-purpose"></td></tr>
+                                    <tr><td class="col-line">10</td><td class="col-command"></td><td class="col-purpose"></td></tr>
+                                </tbody>
+                            </table>
+
+                            <div style="font-size: 10px; color: #4b5563; background: #f3f4f6; border-left: 3px solid #0891b2; padding: 4px 8px; border-radius: 2px;">
+                                <strong>COMANDOS:</strong> <code>AVANZAR()</code> | <code>GIRAR_DER()</code> | <code>GIRAR_IZQ()</code> | <code>SCAN()</code> | <code>LOOP(n) { }</code>
+                            </div>
+                        </div>
+                    </div>
+
+                    <footer class="sheet-footer-row">
+                        <div class="scoring-card">
+                            <span style="font-weight: 800; font-size: 10px; text-transform: uppercase;">Puntuación de Misión:</span>
+                            <div class="scoring-pills-row">
+                                <span class="score-pill">CP Hito: +250</span>
+                                <span class="score-pill">Geoda: +100</span>
+                                <span class="score-pill">Energía: +50</span>
+                                <span class="score-pill">Radar: +150</span>
+                                <span class="score-pill">Bono Memoria: +200</span>
+                            </div>
+                        </div>
+                        <div class="approval-card">
+                            <span style="font-weight: 800; font-size: 10px;">VALIDACIÓN DE RELEVO:</span>
+                            <span>Firma del compañero que recibe el rover:</span>
+                            <div class="approval-line"></div>
+                        </div>
+                    </footer>
+                `;
+
+                host.appendChild(article);
+            }
+        }
+
+        // Filter sheets on selector change
+        document.getElementById('sheet-selector').addEventListener('change', (e) => {
+            const val = e.target.value;
+            const pages = document.querySelectorAll('.worksheet-page');
+            pages.forEach(p => {
+                if (val === 'ALL') {
+                    p.style.display = 'flex';
+                } else if (p.dataset.sheetId === val) {
+                    p.style.display = 'flex';
+                } else {
+                    p.style.display = 'none';
+                }
+            });
+        });
+
+        window.addEventListener('DOMContentLoaded', () => {
+            buildCampaignSheets();
+        });
+    </script>
+</body>
+</html>

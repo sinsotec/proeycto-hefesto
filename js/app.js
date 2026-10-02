@@ -255,6 +255,73 @@ class TacticalAudio {
     }
 
     /**
+     * Synthesizes fast ascending sci-fi arpeggio chime for energy cell recharge.
+     */
+    playEnergyPickup() {
+        if (!this.enabled) return;
+        this.ensureContext();
+        if (!this.ctx) return;
+
+        const baseTime = this.ctx.currentTime;
+        const notes = [659.25, 830.61, 987.77, 1318.51];
+        notes.forEach((freq, idx) => {
+            const osc = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(freq, baseTime + idx * 0.045);
+
+            gain.gain.setValueAtTime(0.12, baseTime + idx * 0.045);
+            gain.gain.exponentialRampToValueAtTime(0.001, baseTime + idx * 0.045 + 0.3);
+
+            osc.connect(gain);
+            gain.connect(this.ctx.destination);
+            osc.start(baseTime + idx * 0.045);
+            osc.stop(baseTime + idx * 0.045 + 0.3);
+        });
+
+        const subOsc = this.ctx.createOscillator();
+        const subGain = this.ctx.createGain();
+        subOsc.type = 'triangle';
+        subOsc.frequency.setValueAtTime(329.63, baseTime);
+        subOsc.frequency.exponentialRampToValueAtTime(659.25, baseTime + 0.22);
+        subGain.gain.setValueAtTime(0.09, baseTime);
+        subGain.gain.exponentialRampToValueAtTime(0.001, baseTime + 0.22);
+        subOsc.connect(subGain);
+        subGain.connect(this.ctx.destination);
+        subOsc.start(baseTime);
+        subOsc.stop(baseTime + 0.22);
+    }
+
+    /**
+     * Synthesizes crystalline harmonic ping chime for geode and rock extraction.
+     */
+    playRockPickup() {
+        if (!this.enabled) return;
+        this.ensureContext();
+        if (!this.ctx) return;
+
+        const baseTime = this.ctx.currentTime;
+        const harmonics = [
+            { freq: 880, type: 'sine', gain: 0.14, dur: 0.4 },
+            { freq: 1760, type: 'sine', gain: 0.11, dur: 0.32 },
+            { freq: 2640, type: 'triangle', gain: 0.07, dur: 0.22 }
+        ];
+
+        harmonics.forEach(h => {
+            const osc = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+            osc.type = h.type;
+            osc.frequency.setValueAtTime(h.freq, baseTime);
+            gain.gain.setValueAtTime(h.gain, baseTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, baseTime + h.dur);
+            osc.connect(gain);
+            gain.connect(this.ctx.destination);
+            osc.start(baseTime);
+            osc.stop(baseTime + h.dur);
+        });
+    }
+
+    /**
      * Plays warning error buzzer.
      */
     playAlert() {
@@ -276,6 +343,76 @@ class TacticalAudio {
         osc.start();
         osc.stop(this.ctx.currentTime + 0.35);
     }
+
+    /**
+     * Synthesizes physical vehicle collision crash sound with low-end sub thud, metallic crunch and impact noise.
+     */
+    playCollision() {
+        if (!this.enabled) return;
+        this.ensureContext();
+        if (!this.ctx) return;
+
+        const now = this.ctx.currentTime;
+
+        const subOsc = this.ctx.createOscillator();
+        const subGain = this.ctx.createGain();
+        subOsc.type = 'triangle';
+        subOsc.frequency.setValueAtTime(175, now);
+        subOsc.frequency.exponentialRampToValueAtTime(28, now + 0.32);
+
+        subGain.gain.setValueAtTime(0.7, now);
+        subGain.gain.exponentialRampToValueAtTime(0.001, now + 0.32);
+
+        subOsc.connect(subGain);
+        subGain.connect(this.ctx.destination);
+        subOsc.start(now);
+        subOsc.stop(now + 0.32);
+
+        const bufferSize = Math.floor(this.ctx.sampleRate * 0.4);
+        const noiseBuffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+        const output = noiseBuffer.getChannelData(0);
+        for (let i = 0; i < bufferSize; i++) {
+            output[i] = Math.random() * 2 - 1;
+        }
+
+        const crunchNoise = this.ctx.createBufferSource();
+        crunchNoise.buffer = noiseBuffer;
+
+        const crunchFilter = this.ctx.createBiquadFilter();
+        crunchFilter.type = 'bandpass';
+        crunchFilter.frequency.setValueAtTime(1250, now);
+        crunchFilter.frequency.exponentialRampToValueAtTime(320, now + 0.35);
+        crunchFilter.Q.setValueAtTime(3.8, now);
+
+        const crunchGain = this.ctx.createGain();
+        crunchGain.gain.setValueAtTime(0.55, now);
+        crunchGain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+
+        crunchNoise.connect(crunchFilter);
+        crunchFilter.connect(crunchGain);
+        crunchGain.connect(this.ctx.destination);
+
+        crunchNoise.start(now);
+        crunchNoise.stop(now + 0.35);
+
+        const snapNoise = this.ctx.createBufferSource();
+        snapNoise.buffer = noiseBuffer;
+
+        const snapFilter = this.ctx.createBiquadFilter();
+        snapFilter.type = 'highpass';
+        snapFilter.frequency.setValueAtTime(2600, now);
+
+        const snapGain = this.ctx.createGain();
+        snapGain.gain.setValueAtTime(0.4, now);
+        snapGain.gain.exponentialRampToValueAtTime(0.001, now + 0.1);
+
+        snapNoise.connect(snapFilter);
+        snapFilter.connect(snapGain);
+        snapGain.connect(this.ctx.destination);
+
+        snapNoise.start(now);
+        snapNoise.stop(now + 0.1);
+    }
 }
 
 /**
@@ -294,246 +431,296 @@ class TacticalApp {
     static CAMPAIGN_LEVELS = [
         {
             id: 1,
-            title: 'NIVEL 1: VECTOR DE INSERCIÓN',
-            objective: 'Aprender desplazamiento directo, giros básicos y sintaxis atómica en equipo de 4.',
+            title: 'NIVEL 1: CORREDOR CON OBSTÁCULOS',
+            objective: 'Sortear pilones de roca, recolectar geodas científicas y balizar los 4 sectores.',
             gridSize: 10,
             moduleCount: 4,
             waypoints: [
                 { x: 2, y: 9 },
-                { x: 2, y: 6 },
-                { x: 5, y: 6 },
-                { x: 5, y: 3 },
-                { x: 8, y: 3 }
+                { x: 4, y: 5 },
+                { x: 8, y: 7 },
+                { x: 9, y: 3 },
+                { x: 5, y: 2 }
             ],
             entities: [
-                { x: 3, y: 8, type: 'PYLON' },
-                { x: 8, y: 5, type: 'ENERGY' }
+                { x: 2, y: 7, type: 'PYLON' },
+                { x: 6, y: 5, type: 'PYLON' },
+                { x: 9, y: 6, type: 'PYLON' },
+                { x: 7, y: 3, type: 'PYLON' },
+                { x: 4, y: 7, type: 'ROCK_SAMPLE' },
+                { x: 8, y: 5, type: 'ROCK_SAMPLE' },
+                { x: 7, y: 7, type: 'ENERGY' },
+                { x: 6, y: 2, type: 'ENERGY' }
             ],
             starterCodes: [
-                'LOOP(3) {\n    AVANZAR()\n}',
-                'GIRAR_IZQ()\nLOOP(3) {\n    AVANZAR()\n}',
-                'GIRAR_DER()\nLOOP(3) {\n    AVANZAR()\n}',
-                'GIRAR_IZQ()\nLOOP(3) {\n    AVANZAR()\n}'
+                'AVANZAR()\nGIRAR_IZQ()\nAVANZAR()\nAVANZAR()\nGIRAR_DER()\nLOOP(3) {\n    AVANZAR()\n}',
+                'GIRAR_IZQ()\nAVANZAR()\nGIRAR_IZQ()\nLOOP(2) {\n    AVANZAR()\n}\nGIRAR_DER()\nLOOP(3) {\n    AVANZAR()\n}',
+                'GIRAR_DER()\nLOOP(4) {\n    AVANZAR()\n}\nGIRAR_IZQ()\nAVANZAR()',
+                'GIRAR_DER()\nAVANZAR()\nGIRAR_DER()\nLOOP(4) {\n    AVANZAR()\n}'
             ]
         },
         {
             id: 2,
-            title: 'NIVEL 2: MANIOBRA ORTOGONAL',
-            objective: 'Navegar esquinas ortogonales, sortear obstáculos y recolectar geodas.',
+            title: 'NIVEL 2: EL LABERINTO DE PILONES',
+            objective: 'Navegar esquinas ortogonales, sortear barreras de pilones y recolectar 3 geodas.',
             gridSize: 12,
             moduleCount: 4,
             waypoints: [
                 { x: 3, y: 11 },
-                { x: 3, y: 7 },
-                { x: 8, y: 7 },
-                { x: 8, y: 3 },
-                { x: 11, y: 3 }
+                { x: 6, y: 8 },
+                { x: 10, y: 10 },
+                { x: 10, y: 4 },
+                { x: 4, y: 3 }
             ],
             entities: [
-                { x: 4, y: 9, type: 'PYLON' },
-                { x: 7, y: 5, type: 'PYLON' },
-                { x: 5, y: 7, type: 'ROCK_SAMPLE' },
-                { x: 10, y: 7, type: 'ENERGY' }
+                { x: 3, y: 9, type: 'PYLON' },
+                { x: 6, y: 10, type: 'PYLON' },
+                { x: 8, y: 8, type: 'PYLON' },
+                { x: 10, y: 7, type: 'PYLON' },
+                { x: 6, y: 4, type: 'PYLON' },
+                { x: 5, y: 8, type: 'ROCK_SAMPLE' },
+                { x: 10, y: 9, type: 'ROCK_SAMPLE' },
+                { x: 7, y: 3, type: 'ROCK_SAMPLE' },
+                { x: 3, y: 10, type: 'ENERGY' },
+                { x: 10, y: 5, type: 'ENERGY' }
             ],
             starterCodes: [
-                'LOOP(4) {\n    AVANZAR()\n}',
-                'GIRAR_IZQ()\nLOOP(5) {\n    AVANZAR()\n}',
-                'GIRAR_DER()\nLOOP(4) {\n    AVANZAR()\n}',
-                'GIRAR_IZQ()\nLOOP(3) {\n    AVANZAR()\n}'
+                'AVANZAR()\nGIRAR_IZQ()\nLOOP(3) {\n    AVANZAR()\n}\nGIRAR_DER()\nLOOP(2) {\n    AVANZAR()\n}',
+                'GIRAR_IZQ()\nLOOP(4) {\n    AVANZAR()\n}\nGIRAR_IZQ()\nLOOP(2) {\n    AVANZAR()\n}',
+                'GIRAR_DER()\nLOOP(6) {\n    AVANZAR()\n}',
+                'GIRAR_DER()\nAVANZAR()\nGIRAR_DER()\nLOOP(6) {\n    AVANZAR()\n}\nGIRAR_IZQ()\nAVANZAR()'
             ]
         },
         {
             id: 3,
-            title: 'NIVEL 3: LA GRIETA MISTERIOSA',
-            objective: 'Escanear fallas de terreno con SCAN() para revelar cristales y muestras ocultas.',
+            title: 'NIVEL 3: DETECCIÓN EN LA GRIETA',
+            objective: 'Usar SCAN() para revelar fisuras inestables antes de cruzarlas y extraer energía.',
             gridSize: 12,
             moduleCount: 4,
             waypoints: [
-                { x: 10, y: 11 },
-                { x: 10, y: 7 },
-                { x: 5, y: 7 },
-                { x: 5, y: 3 },
-                { x: 2, y: 3 }
+                { x: 11, y: 11 },
+                { x: 7, y: 8 },
+                { x: 3, y: 10 },
+                { x: 3, y: 4 },
+                { x: 8, y: 2 }
             ],
             entities: [
-                { x: 10, y: 9, type: 'ANOMALY', revealType: 'ENERGY' },
-                { x: 7, y: 7, type: 'ANOMALY', revealType: 'ROCK_SAMPLE' },
-                { x: 8, y: 10, type: 'PYLON' },
-                { x: 3, y: 5, type: 'PYLON' }
+                { x: 9, y: 8, type: 'ANOMALY', revealType: 'ENERGY' },
+                { x: 3, y: 7, type: 'ANOMALY', revealType: 'ROCK_SAMPLE' },
+                { x: 6, y: 2, type: 'ANOMALY', revealType: 'ENERGY' },
+                { x: 11, y: 8, type: 'PYLON' },
+                { x: 5, y: 8, type: 'PYLON' },
+                { x: 3, y: 5, type: 'PYLON' },
+                { x: 7, y: 10, type: 'ROCK_SAMPLE' },
+                { x: 10, y: 4, type: 'ROCK_SAMPLE' }
             ],
             starterCodes: [
-                'SCAN()\nLOOP(4) {\n    AVANZAR()\n}',
-                'GIRAR_DER()\nSCAN()\nLOOP(5) {\n    AVANZAR()\n}',
-                'GIRAR_IZQ()\nLOOP(4) {\n    AVANZAR()\n}',
-                'GIRAR_DER()\nLOOP(3) {\n    AVANZAR()\n}'
+                'SCAN()\nAVANZAR()\nAVANZAR()\nGIRAR_DER()\nAVANZAR()\nAVANZAR()\nGIRAR_IZQ()\nAVANZAR()',
+                'GIRAR_DER()\nLOOP(4) {\n    AVANZAR()\n}\nGIRAR_DER()\nLOOP(2) {\n    AVANZAR()\n}',
+                'SCAN()\nGIRAR_IZQ()\nLOOP(6) {\n    AVANZAR()\n}',
+                'GIRAR_IZQ()\nAVANZAR()\nAVANZAR()\nGIRAR_DER()\nSCAN()\nLOOP(5) {\n    AVANZAR()\n}'
             ]
         },
         {
             id: 4,
-            title: 'NIVEL 4: MUESTREO CIENTÍFICO',
-            objective: 'Coordinar 4 módulos colaborativos para recolectar muestras geológicas.',
+            title: 'NIVEL 4: MUESTREO CIENTÍFICO EN ZIGZAG',
+            objective: 'Coordinar 4 maniobras en zigzag sorteando pilones para recuperar 3 muestras geológicas.',
             gridSize: 12,
             moduleCount: 4,
             waypoints: [
                 { x: 2, y: 11 },
-                { x: 2, y: 5 },
-                { x: 7, y: 5 },
-                { x: 7, y: 10 },
-                { x: 11, y: 10 }
+                { x: 6, y: 6 },
+                { x: 11, y: 9 },
+                { x: 8, y: 3 },
+                { x: 2, y: 3 }
             ],
             entities: [
-                { x: 2, y: 8, type: 'ROCK_SAMPLE' },
-                { x: 5, y: 5, type: 'ROCK_SAMPLE' },
-                { x: 7, y: 8, type: 'ANOMALY', revealType: 'ENERGY' },
-                { x: 4, y: 10, type: 'PYLON' },
-                { x: 9, y: 5, type: 'PYLON' }
+                { x: 2, y: 8, type: 'PYLON' },
+                { x: 7, y: 8, type: 'PYLON' },
+                { x: 10, y: 5, type: 'PYLON' },
+                { x: 5, y: 3, type: 'PYLON' },
+                { x: 8, y: 9, type: 'ANOMALY', revealType: 'ENERGY' },
+                { x: 4, y: 6, type: 'ROCK_SAMPLE' },
+                { x: 11, y: 7, type: 'ROCK_SAMPLE' },
+                { x: 6, y: 3, type: 'ROCK_SAMPLE' },
+                { x: 8, y: 6, type: 'ENERGY' }
             ],
             starterCodes: [
-                'LOOP(6) {\n    AVANZAR()\n}',
-                'GIRAR_IZQ()\nLOOP(5) {\n    AVANZAR()\n}',
-                'GIRAR_IZQ()\nLOOP(5) {\n    AVANZAR()\n}',
-                'GIRAR_DER()\nLOOP(4) {\n    AVANZAR()\n}'
+                'AVANZAR()\nAVANZAR()\nGIRAR_IZQ()\nLOOP(4) {\n    AVANZAR()\n}\nGIRAR_DER()\nLOOP(3) {\n    AVANZAR()\n}',
+                'GIRAR_IZQ()\nLOOP(5) {\n    AVANZAR()\n}\nGIRAR_IZQ()\nSCAN()\nLOOP(3) {\n    AVANZAR()\n}',
+                'GIRAR_DER()\nLOOP(6) {\n    AVANZAR()\n}\nGIRAR_DER()\nLOOP(3) {\n    AVANZAR()\n}',
+                'GIRAR_DER()\nLOOP(6) {\n    AVANZAR()\n}'
             ]
         },
         {
             id: 5,
-            title: 'NIVEL 5: CAMPO MINADO Y FISURAS',
-            objective: 'Usar SCAN() para neutralizar la incertidumbre de minas explosivas y grietas inestables.',
+            title: 'NIVEL 5: CAMPO MINADO Y DETECCIÓN',
+            objective: 'Sortear minas explosivas y neutralizar incertidumbre con SCAN() y desvíos tácticos.',
             gridSize: 14,
             moduleCount: 4,
             waypoints: [
                 { x: 3, y: 13 },
-                { x: 3, y: 7 },
-                { x: 9, y: 7 },
-                { x: 9, y: 2 },
-                { x: 13, y: 2 }
+                { x: 7, y: 8 },
+                { x: 12, y: 11 },
+                { x: 12, y: 4 },
+                { x: 4, y: 3 }
             ],
             entities: [
-                { x: 2, y: 7, type: 'MINE' },
-                { x: 8, y: 5, type: 'MINE' },
-                { x: 6, y: 7, type: 'ANOMALY', revealType: 'ROCK_SAMPLE' },
-                { x: 5, y: 10, type: 'PYLON' },
-                { x: 11, y: 2, type: 'ENERGY' }
+                { x: 3, y: 10, type: 'MINE' },
+                { x: 7, y: 10, type: 'MINE' },
+                { x: 10, y: 7, type: 'MINE' },
+                { x: 8, y: 3, type: 'MINE' },
+                { x: 5, y: 8, type: 'ANOMALY', revealType: 'ROCK_SAMPLE' },
+                { x: 12, y: 7, type: 'ANOMALY', revealType: 'ENERGY' },
+                { x: 9, y: 11, type: 'ROCK_SAMPLE' },
+                { x: 6, y: 4, type: 'ROCK_SAMPLE' },
+                { x: 13, y: 9, type: 'ENERGY' },
+                { x: 4, y: 5, type: 'ENERGY' }
             ],
             starterCodes: [
-                'SCAN()\nLOOP(6) {\n    AVANZAR()\n}',
-                'GIRAR_IZQ()\nSCAN()\nLOOP(6) {\n    AVANZAR()\n}',
-                'GIRAR_DER()\nLOOP(5) {\n    AVANZAR()\n}',
-                'GIRAR_IZQ()\nLOOP(4) {\n    AVANZAR()\n}'
+                'SCAN()\nAVANZAR()\nAVANZAR()\nGIRAR_IZQ()\nLOOP(4) {\n    AVANZAR()\n}\nGIRAR_DER()\nLOOP(3) {\n    AVANZAR()\n}',
+                'GIRAR_IZQ()\nLOOP(5) {\n    AVANZAR()\n}\nGIRAR_IZQ()\nLOOP(3) {\n    AVANZAR()\n}',
+                'GIRAR_DER()\nSCAN()\nLOOP(7) {\n    AVANZAR()\n}',
+                'GIRAR_DER()\nAVANZAR()\nGIRAR_DER()\nLOOP(8) {\n    AVANZAR()\n}\nGIRAR_IZQ()\nAVANZAR()'
             ]
         },
         {
             id: 6,
-            title: 'NIVEL 6: CANAL EN ZIGZAG',
-            objective: 'Compresión algorítmica: trayectorias extensas que requieren LOOP(n) para no saturar memoria.',
-            gridSize: 14,
-            moduleCount: 4,
-            waypoints: [
-                { x: 12, y: 13 },
-                { x: 12, y: 8 },
-                { x: 6, y: 8 },
-                { x: 6, y: 3 },
-                { x: 1, y: 3 }
-            ],
-            entities: [
-                { x: 10, y: 11, type: 'PYLON' },
-                { x: 8, y: 6, type: 'PYLON' },
-                { x: 4, y: 5, type: 'PYLON' },
-                { x: 9, y: 8, type: 'ROCK_SAMPLE' },
-                { x: 3, y: 3, type: 'ENERGY' }
-            ],
-            starterCodes: [
-                'LOOP(5) {\n    AVANZAR()\n}',
-                'GIRAR_DER()\nLOOP(6) {\n    AVANZAR()\n}',
-                'GIRAR_IZQ()\nLOOP(5) {\n    AVANZAR()\n}'
-            ]
-        },
-        {
-            id: 7,
-            title: 'NIVEL 7: FALLA TECTÓNICA',
-            objective: 'Distinguir entre grietas con recursos útiles y obstáculos con detección espectral.',
+            title: 'NIVEL 6: CANAL EN HERRADURA',
+            objective: 'Navegar cañones estrechos con curvas en U y compresión algorítmica con LOOP(n).',
             gridSize: 14,
             moduleCount: 4,
             waypoints: [
                 { x: 2, y: 13 },
-                { x: 2, y: 7 },
-                { x: 7, y: 7 },
-                { x: 7, y: 13 },
-                { x: 13, y: 13 }
+                { x: 8, y: 9 },
+                { x: 2, y: 5 },
+                { x: 11, y: 4 },
+                { x: 12, y: 12 }
             ],
             entities: [
-                { x: 2, y: 10, type: 'ANOMALY', revealType: 'ENERGY' },
-                { x: 5, y: 7, type: 'ANOMALY', revealType: 'ROCK_SAMPLE' },
-                { x: 9, y: 9, type: 'PYLON' },
-                { x: 10, y: 7, type: 'MINE' },
-                { x: 7, y: 10, type: 'ENERGY' },
-                { x: 10, y: 13, type: 'ROCK_SAMPLE' }
+                { x: 2, y: 9, type: 'PYLON' },
+                { x: 5, y: 9, type: 'PYLON' },
+                { x: 8, y: 7, type: 'PYLON' },
+                { x: 2, y: 7, type: 'PYLON' },
+                { x: 11, y: 8, type: 'PYLON' },
+                { x: 7, y: 4, type: 'ANOMALY', revealType: 'ROCK_SAMPLE' },
+                { x: 6, y: 9, type: 'ROCK_SAMPLE' },
+                { x: 4, y: 5, type: 'ROCK_SAMPLE' },
+                { x: 12, y: 8, type: 'ROCK_SAMPLE' },
+                { x: 8, y: 8, type: 'ENERGY' },
+                { x: 11, y: 6, type: 'ENERGY' }
             ],
             starterCodes: [
-                'LOOP(6) {\n    AVANZAR()\n}',
-                'GIRAR_IZQ()\nLOOP(5) {\n    AVANZAR()\n}',
-                'GIRAR_IZQ()\nLOOP(6) {\n    AVANZAR()\n}',
-                'GIRAR_DER()\nLOOP(6) {\n    AVANZAR()\n}'
+                'AVANZAR()\nAVANZAR()\nGIRAR_IZQ()\nLOOP(6) {\n    AVANZAR()\n}\nGIRAR_DER()\nLOOP(2) {\n    AVANZAR()\n}',
+                'GIRAR_DER()\nLOOP(6) {\n    AVANZAR()\n}\nGIRAR_IZQ()\nLOOP(4) {\n    AVANZAR()\n}',
+                'SCAN()\nGIRAR_IZQ()\nAVANZAR()\nGIRAR_DER()\nLOOP(9) {\n    AVANZAR()\n}\nGIRAR_IZQ()\nAVANZAR()',
+                'GIRAR_IZQ()\nLOOP(8) {\n    AVANZAR()\n}\nGIRAR_DER()\nAVANZAR()'
+            ]
+        },
+        {
+            id: 7,
+            title: 'NIVEL 7: FALLA TECTÓNICA MAYOR',
+            objective: 'Distinguir entre grietas con recursos y minas con detección espectral colaborativa.',
+            gridSize: 14,
+            moduleCount: 4,
+            waypoints: [
+                { x: 2, y: 13 },
+                { x: 7, y: 9 },
+                { x: 12, y: 13 },
+                { x: 12, y: 5 },
+                { x: 4, y: 3 }
+            ],
+            entities: [
+                { x: 2, y: 11, type: 'MINE' },
+                { x: 9, y: 11, type: 'MINE' },
+                { x: 12, y: 8, type: 'MINE' },
+                { x: 5, y: 9, type: 'PYLON' },
+                { x: 7, y: 11, type: 'PYLON' },
+                { x: 8, y: 5, type: 'PYLON' },
+                { x: 7, y: 7, type: 'ANOMALY', revealType: 'ROCK_SAMPLE' },
+                { x: 10, y: 5, type: 'ANOMALY', revealType: 'ENERGY' },
+                { x: 4, y: 9, type: 'ROCK_SAMPLE' },
+                { x: 12, y: 10, type: 'ROCK_SAMPLE' },
+                { x: 6, y: 3, type: 'ROCK_SAMPLE' },
+                { x: 7, y: 12, type: 'ENERGY' },
+                { x: 12, y: 4, type: 'ENERGY' }
+            ],
+            starterCodes: [
+                'AVANZAR()\nGIRAR_IZQ()\nLOOP(5) {\n    AVANZAR()\n}\nGIRAR_DER()\nLOOP(3) {\n    AVANZAR()\n}',
+                'GIRAR_IZQ()\nLOOP(5) {\n    AVANZAR()\n}\nGIRAR_IZQ()\nLOOP(4) {\n    AVANZAR()\n}',
+                'GIRAR_DER()\nSCAN()\nLOOP(8) {\n    AVANZAR()\n}',
+                'GIRAR_DER()\nLOOP(8) {\n    AVANZAR()\n}\nGIRAR_DER()\nLOOP(2) {\n    AVANZAR()\n}'
             ]
         },
         {
             id: 8,
             title: 'NIVEL 8: LABERINTO DE BASALTO',
-            objective: 'Navegación estrecha con 4 roles coordinados sorteando minas de proximidad.',
+            objective: 'Navegación estrecha con 4 roles coordinados sorteando 3 minas de proximidad.',
             gridSize: 16,
             moduleCount: 4,
             waypoints: [
                 { x: 3, y: 15 },
-                { x: 3, y: 8 },
-                { x: 10, y: 8 },
-                { x: 10, y: 2 },
-                { x: 15, y: 2 }
+                { x: 8, y: 10 },
+                { x: 14, y: 13 },
+                { x: 14, y: 5 },
+                { x: 4, y: 3 }
             ],
             entities: [
-                { x: 5, y: 12, type: 'MINE' },
-                { x: 7, y: 10, type: 'MINE' },
-                { x: 12, y: 6, type: 'MINE' },
-                { x: 6, y: 8, type: 'ANOMALY', revealType: 'ROCK_SAMPLE' },
-                { x: 10, y: 5, type: 'ANOMALY', revealType: 'ENERGY' },
-                { x: 13, y: 2, type: 'ROCK_SAMPLE' },
-                { x: 3, y: 11, type: 'ENERGY' }
+                { x: 3, y: 12, type: 'MINE' },
+                { x: 8, y: 12, type: 'MINE' },
+                { x: 11, y: 9, type: 'MINE' },
+                { x: 9, y: 5, type: 'MINE' },
+                { x: 5, y: 10, type: 'PYLON' },
+                { x: 14, y: 9, type: 'PYLON' },
+                { x: 9, y: 3, type: 'PYLON' },
+                { x: 6, y: 10, type: 'ANOMALY', revealType: 'ROCK_SAMPLE' },
+                { x: 11, y: 13, type: 'ANOMALY', revealType: 'ENERGY' },
+                { x: 8, y: 8, type: 'ROCK_SAMPLE' },
+                { x: 14, y: 11, type: 'ROCK_SAMPLE' },
+                { x: 6, y: 3, type: 'ROCK_SAMPLE' },
+                { x: 3, y: 13, type: 'ENERGY' },
+                { x: 14, y: 4, type: 'ENERGY' }
             ],
             starterCodes: [
-                'LOOP(7) {\n    AVANZAR()\n}',
-                'GIRAR_IZQ()\nLOOP(7) {\n    AVANZAR()\n}',
-                'GIRAR_DER()\nLOOP(6) {\n    AVANZAR()\n}',
-                'GIRAR_IZQ()\nLOOP(5) {\n    AVANZAR()\n}'
+                'AVANZAR()\nAVANZAR()\nGIRAR_IZQ()\nLOOP(5) {\n    AVANZAR()\n}\nGIRAR_DER()\nLOOP(3) {\n    AVANZAR()\n}',
+                'GIRAR_IZQ()\nSCAN()\nLOOP(6) {\n    AVANZAR()\n}\nGIRAR_IZQ()\nLOOP(3) {\n    AVANZAR()\n}',
+                'GIRAR_DER()\nLOOP(8) {\n    AVANZAR()\n}',
+                'GIRAR_DER()\nLOOP(10) {\n    AVANZAR()\n}\nGIRAR_DER()\nLOOP(2) {\n    AVANZAR()\n}'
             ]
         },
         {
             id: 9,
             title: 'NIVEL 9: EXPEDICIÓN GEO-ESPACIAL',
-            objective: 'Maximizar el índice científico recolectando muestras geológicas críticas.',
+            objective: 'Maximizar el índice científico recolectando 4 geodas y 3 células de energía.',
             gridSize: 16,
             moduleCount: 4,
             waypoints: [
                 { x: 14, y: 15 },
-                { x: 14, y: 8 },
-                { x: 6, y: 8 },
-                { x: 6, y: 2 },
-                { x: 2, y: 2 }
+                { x: 9, y: 10 },
+                { x: 4, y: 13 },
+                { x: 4, y: 4 },
+                { x: 12, y: 3 }
             ],
             entities: [
-                { x: 14, y: 11, type: 'ROCK_SAMPLE' },
-                { x: 10, y: 8, type: 'ROCK_SAMPLE' },
-                { x: 6, y: 5, type: 'ROCK_SAMPLE' },
-                { x: 4, y: 2, type: 'ROCK_SAMPLE' },
-                { x: 11, y: 13, type: 'ANOMALY', revealType: 'ENERGY' },
-                { x: 8, y: 6, type: 'PYLON' },
-                { x: 8, y: 12, type: 'MINE' },
-                { x: 12, y: 4, type: 'MINE' },
-                { x: 3, y: 6, type: 'ENERGY' }
+                { x: 14, y: 12, type: 'PYLON' },
+                { x: 9, y: 12, type: 'PYLON' },
+                { x: 4, y: 9, type: 'MINE' },
+                { x: 8, y: 4, type: 'MINE' },
+                { x: 11, y: 10, type: 'ANOMALY', revealType: 'ENERGY' },
+                { x: 4, y: 7, type: 'ANOMALY', revealType: 'ROCK_SAMPLE' },
+                { x: 9, y: 8, type: 'ROCK_SAMPLE' },
+                { x: 6, y: 13, type: 'ROCK_SAMPLE' },
+                { x: 4, y: 5, type: 'ROCK_SAMPLE' },
+                { x: 8, y: 3, type: 'ROCK_SAMPLE' },
+                { x: 12, y: 14, type: 'ENERGY' },
+                { x: 4, y: 11, type: 'ENERGY' },
+                { x: 10, y: 3, type: 'ENERGY' }
             ],
             starterCodes: [
-                'LOOP(7) {\n    AVANZAR()\n}',
-                'GIRAR_DER()\nLOOP(8) {\n    AVANZAR()\n}',
-                'GIRAR_IZQ()\nLOOP(6) {\n    AVANZAR()\n}',
-                'GIRAR_DER()\nLOOP(4) {\n    AVANZAR()\n}'
+                'AVANZAR()\nAVANZAR()\nGIRAR_DER()\nLOOP(5) {\n    AVANZAR()\n}\nGIRAR_IZQ()\nLOOP(3) {\n    AVANZAR()\n}',
+                'GIRAR_DER()\nSCAN()\nLOOP(5) {\n    AVANZAR()\n}\nGIRAR_DER()\nLOOP(3) {\n    AVANZAR()\n}',
+                'GIRAR_IZQ()\nSCAN()\nLOOP(9) {\n    AVANZAR()\n}',
+                'GIRAR_IZQ()\nLOOP(8) {\n    AVANZAR()\n}\nGIRAR_IZQ()\nAVANZAR()'
             ]
         },
         {
@@ -544,30 +731,35 @@ class TacticalApp {
             moduleCount: 4,
             waypoints: [
                 { x: 2, y: 15 },
-                { x: 2, y: 7 },
-                { x: 9, y: 7 },
-                { x: 9, y: 14 },
-                { x: 15, y: 14 }
+                { x: 8, y: 10 },
+                { x: 14, y: 14 },
+                { x: 14, y: 6 },
+                { x: 6, y: 3 }
             ],
             entities: [
-                { x: 2, y: 11, type: 'ANOMALY', revealType: 'ENERGY' },
-                { x: 5, y: 7, type: 'ANOMALY', revealType: 'ROCK_SAMPLE' },
-                { x: 6, y: 11, type: 'PYLON' },
-                { x: 3, y: 13, type: 'MINE' },
-                { x: 7, y: 9, type: 'MINE' },
-                { x: 11, y: 9, type: 'MINE' },
-                { x: 9, y: 11, type: 'ROCK_SAMPLE' },
-                { x: 12, y: 14, type: 'ROCK_SAMPLE' },
-                { x: 6, y: 15, type: 'ENERGY' },
-                { x: 14, y: 10, type: 'ENERGY' },
-                { x: 4, y: 5, type: 'PYLON' },
-                { x: 12, y: 5, type: 'PYLON' }
+                { x: 2, y: 12, type: 'MINE' },
+                { x: 8, y: 12, type: 'MINE' },
+                { x: 11, y: 10, type: 'MINE' },
+                { x: 10, y: 6, type: 'MINE' },
+                { x: 5, y: 10, type: 'PYLON' },
+                { x: 14, y: 10, type: 'PYLON' },
+                { x: 10, y: 3, type: 'PYLON' },
+                { x: 5, y: 14, type: 'ANOMALY', revealType: 'ENERGY' },
+                { x: 11, y: 14, type: 'ANOMALY', revealType: 'ROCK_SAMPLE' },
+                { x: 14, y: 8, type: 'ANOMALY', revealType: 'ENERGY' },
+                { x: 6, y: 10, type: 'ROCK_SAMPLE' },
+                { x: 14, y: 12, type: 'ROCK_SAMPLE' },
+                { x: 8, y: 6, type: 'ROCK_SAMPLE' },
+                { x: 8, y: 3, type: 'ROCK_SAMPLE' },
+                { x: 2, y: 14, type: 'ENERGY' },
+                { x: 12, y: 14, type: 'ENERGY' },
+                { x: 14, y: 5, type: 'ENERGY' }
             ],
             starterCodes: [
-                'LOOP(8) {\n    AVANZAR()\n}',
-                'GIRAR_IZQ()\nLOOP(7) {\n    AVANZAR()\n}',
-                'GIRAR_IZQ()\nLOOP(7) {\n    AVANZAR()\n}',
-                'GIRAR_DER()\nLOOP(6) {\n    AVANZAR()\n}'
+                'AVANZAR()\nAVANZAR()\nGIRAR_IZQ()\nLOOP(6) {\n    AVANZAR()\n}\nGIRAR_DER()\nLOOP(3) {\n    AVANZAR()\n}',
+                'GIRAR_IZQ()\nSCAN()\nLOOP(6) {\n    AVANZAR()\n}\nGIRAR_IZQ()\nLOOP(4) {\n    AVANZAR()\n}',
+                'GIRAR_DER()\nSCAN()\nLOOP(8) {\n    AVANZAR()\n}',
+                'GIRAR_DER()\nLOOP(8) {\n    AVANZAR()\n}\nGIRAR_DER()\nLOOP(3) {\n    AVANZAR()\n}'
             ]
         }
     ];
@@ -579,10 +771,19 @@ class TacticalApp {
         this.scene = null;
         this.audio = new TacticalAudio();
 
-        this.currentMode = 'SANDBOX';
-        this.currentGridSize = 12;
+        this.currentMode = 'CAMPAIGN';
+        this.currentGridSize = 10;
         this.currentModuleCount = 4;
         this.currentCampaignLevelId = 1;
+
+        this.tacticalScore = 0;
+        this.collectedRocksCount = 0;
+        this.collectedEnergyCount = 0;
+        this.scannedAnomaliesCount = 0;
+        this.levelTotalRocks = 0;
+        this.levelTotalEnergy = 0;
+        this.levelTotalAnomalies = 0;
+        this.reachedCheckpoints = new Set();
 
         this.stages = [];
         this.currentStageIndex = 0;
@@ -632,12 +833,18 @@ class TacticalApp {
             btnResetHazards: document.getElementById('btn-reset-hazards'),
             btnToggleLegend: document.getElementById('btn-toggle-legend'),
             btnExpandLegend: document.getElementById('btn-expand-legend'),
-            tacticalLegend: document.getElementById('tactical-legend')
+            tacticalLegend: document.getElementById('tactical-legend'),
+
+            metricScoreTotal: document.getElementById('metric-score-total'),
+            metricRocksCount: document.getElementById('metric-rocks-count'),
+            metricEnergyCount: document.getElementById('metric-energy-count'),
+            metricAnomaliesCount: document.getElementById('metric-anomalies-count'),
+            missionRankBadge: document.getElementById('mission-rank-badge')
         };
 
         this.initScene();
-        this.applyConfiguration(this.currentGridSize, this.currentModuleCount);
         this.bindEvents();
+        this.switchMode('CAMPAIGN');
 
         this.logTelemetry('TACTICAL VECTOR ENGINE ONLINE. WELCOME OPERATOR.', 'INFO');
     }
@@ -851,6 +1058,124 @@ class TacticalApp {
         this.buildStageTabs();
         this.selectStage(0);
         this.scene.updateAllBeaconStatuses(['CP0'], this.stages[0] ? this.stages[0].targetId : 'CP1');
+        this.resetMissionScore(Array.from(this.scene.tacticalEntities.values()));
+    }
+
+    /**
+     * Deploys defined tactical entities for a level onto the grid.
+     * @param {Object} level
+     * @param {number} targetGridSize
+     */
+    deployLevelEntities(level, targetGridSize) {
+        const beaconCoordinates = new Set();
+        for (const st of this.stages) {
+            beaconCoordinates.add(`${st.startX},${st.startY}`);
+            beaconCoordinates.add(`${st.targetX},${st.targetY}`);
+        }
+
+        this.scene.clearAllEntities();
+        for (const ent of level.entities) {
+            const key = `${ent.x},${ent.y}`;
+            if (beaconCoordinates.has(key)) {
+                continue;
+            }
+            if (ent.x <= targetGridSize && ent.y <= targetGridSize) {
+                const entity = this.scene.createEntityMesh(ent.x, ent.y, ent.type);
+                if (ent.revealType) {
+                    entity.revealType = ent.revealType;
+                }
+                this.scene.tacticalEntities.set(key, entity);
+            }
+        }
+    }
+
+    /**
+     * Resets scoring metrics and recalculates available map collectibles.
+     * @param {Array<{x: number, y: number, type: string}>} [entities]
+     */
+    resetMissionScore(entities = []) {
+        this.tacticalScore = 0;
+        this.collectedRocksCount = 0;
+        this.collectedEnergyCount = 0;
+        this.scannedAnomaliesCount = 0;
+        this.reachedCheckpoints = new Set();
+
+        let rocks = 0;
+        let energy = 0;
+        let anomalies = 0;
+
+        if (Array.isArray(entities)) {
+            for (const ent of entities) {
+                if (ent.type === 'ROCK_SAMPLE') rocks++;
+                else if (ent.type === 'ENERGY') energy++;
+                else if (ent.type === 'ANOMALY') anomalies++;
+            }
+        }
+
+        this.levelTotalRocks = rocks;
+        this.levelTotalEnergy = energy;
+        this.levelTotalAnomalies = anomalies;
+
+        this.updateScoreHUD(false);
+    }
+
+    /**
+     * Updates tactical score HUD and evaluates rank badge.
+     * @param {boolean} [isFinished=false]
+     */
+    updateScoreHUD(isFinished = false) {
+        if (!this.dom.metricScoreTotal) return;
+
+        this.dom.metricScoreTotal.textContent = String(this.tacticalScore);
+        if (this.dom.metricRocksCount) {
+            this.dom.metricRocksCount.innerHTML = `<span class="metric-icon">&#x2B22;</span> ${this.collectedRocksCount}/${this.levelTotalRocks}`;
+        }
+        if (this.dom.metricEnergyCount) {
+            this.dom.metricEnergyCount.innerHTML = `<span class="metric-icon">&#x25C6;</span> ${this.collectedEnergyCount}/${this.levelTotalEnergy}`;
+        }
+        if (this.dom.metricAnomaliesCount) {
+            this.dom.metricAnomaliesCount.innerHTML = `<span class="metric-icon">&#x2668;</span> ${this.scannedAnomaliesCount}/${this.levelTotalAnomalies}`;
+        }
+
+        if (this.dom.missionRankBadge) {
+            const totalPickups = this.levelTotalRocks + this.levelTotalEnergy;
+            const collectedPickups = this.collectedRocksCount + this.collectedEnergyCount;
+            const anomaliesFound = this.scannedAnomaliesCount;
+
+            let rank = 'BRONCE';
+            let rankClass = 'rank-bronze';
+
+            if (isFinished) {
+                const pickupRatio = totalPickups > 0 ? (collectedPickups / totalPickups) : 1;
+                const anomalyRatio = this.levelTotalAnomalies > 0 ? (anomaliesFound / this.levelTotalAnomalies) : 1;
+
+                if (pickupRatio >= 1 && anomalyRatio >= 1) {
+                    rank = 'ORO';
+                    rankClass = 'rank-gold';
+                } else if (pickupRatio >= 0.5) {
+                    rank = 'PLATA';
+                    rankClass = 'rank-silver';
+                } else {
+                    rank = 'BRONCE';
+                    rankClass = 'rank-bronze';
+                }
+            }
+
+            this.dom.missionRankBadge.textContent = rank;
+            this.dom.missionRankBadge.className = `score-rank-badge ${rankClass}`;
+        }
+    }
+
+    /**
+     * Triggers dynamic bounce animation on HUD metric item upon collection.
+     * @param {'metricRocksCount' | 'metricEnergyCount' | 'metricScoreTotal'} elementKey
+     */
+    pulseMetricHUD(elementKey) {
+        const el = this.dom[elementKey];
+        if (!el) return;
+        el.classList.remove('pulse-pickup');
+        void el.offsetWidth;
+        el.classList.add('pulse-pickup');
     }
 
     /**
@@ -1126,7 +1451,7 @@ class TacticalApp {
         }
 
         if (this.dom.sandboxEntityPicker) {
-            this.dom.sandboxEntityPicker.style.display = 'flex';
+            this.dom.sandboxEntityPicker.style.display = (mode === 'SANDBOX') ? 'flex' : 'none';
         }
 
         this.dom.gridSizeSelect.disabled = false;
@@ -1172,27 +1497,8 @@ class TacticalApp {
             : null;
 
         this.applyConfiguration(targetGridSize, targetModuleCount, level.starterCodes, customWaypoints);
-
-        const beaconCoordinates = new Set();
-        for (const st of this.stages) {
-            beaconCoordinates.add(`${st.startX},${st.startY}`);
-            beaconCoordinates.add(`${st.targetX},${st.targetY}`);
-        }
-
-        this.scene.clearAllEntities();
-        for (const ent of level.entities) {
-            const key = `${ent.x},${ent.y}`;
-            if (beaconCoordinates.has(key)) {
-                continue;
-            }
-            if (ent.x <= targetGridSize && ent.y <= targetGridSize) {
-                const entity = this.scene.createEntityMesh(ent.x, ent.y, ent.type);
-                if (ent.revealType) {
-                    entity.revealType = ent.revealType;
-                }
-                this.scene.tacticalEntities.set(key, entity);
-            }
-        }
+        this.deployLevelEntities(level, targetGridSize);
+        this.resetMissionScore(level.entities);
 
         this.setMissionBanner(`${level.title} (${targetModuleCount} MÓDULOS): ${level.objective}`, 'INFO');
         this.logTelemetry(`CAMPAIGN LEVEL ${level.id} ENGAGED: ${level.title} WITH ${targetModuleCount} MODULES ON ${targetGridSize}x${targetGridSize} GRID.`, 'INFO');
@@ -1255,7 +1561,32 @@ class TacticalApp {
             }
         }
 
-        this.setMissionBanner(`MISIÓN PROCEDURAL GENERADA // SOLUCIÓN MATEMÁTICA CERTIFICADA (BFS)`, 'INFO');
+        const rockCount = Math.floor(size * 0.25);
+        for (let i = 0; i < rockCount; i++) {
+            const rx = 1 + Math.floor(Math.random() * size);
+            const ry = 1 + Math.floor(Math.random() * size);
+            const key = `${rx},${ry}`;
+            if (!occupied.has(key) && !candidateBlocks.has(key) && !this.scene.tacticalEntities.has(key)) {
+                const entity = this.scene.createEntityMesh(rx, ry, 'ROCK_SAMPLE');
+                this.scene.tacticalEntities.set(key, entity);
+            }
+        }
+
+        const anomalyCount = Math.floor(size * 0.15);
+        for (let i = 0; i < anomalyCount; i++) {
+            const rx = 1 + Math.floor(Math.random() * size);
+            const ry = 1 + Math.floor(Math.random() * size);
+            const key = `${rx},${ry}`;
+            if (!occupied.has(key) && !candidateBlocks.has(key) && !this.scene.tacticalEntities.has(key)) {
+                const entity = this.scene.createEntityMesh(rx, ry, 'ANOMALY');
+                this.scene.tacticalEntities.set(key, entity);
+            }
+        }
+
+        const spawnedEntities = Array.from(this.scene.tacticalEntities.values());
+        this.resetMissionScore(spawnedEntities);
+
+        this.setMissionBanner('MISIÓN PROCEDURAL GENERADA // SOLUCIÓN MATEMÁTICA CERTIFICADA (BFS)', 'INFO');
         this.logTelemetry(`PROCEDURAL MAP SYNTHESIZED WITH ${this.scene.tacticalEntities.size} TACTICAL ENTITIES.`, 'INFO');
     }
 
@@ -1287,6 +1618,14 @@ class TacticalApp {
             reached.push(this.stages[i].targetId);
         }
         this.scene.updateAllBeaconStatuses(reached, stage.targetId);
+
+        if (this.currentMode === 'CAMPAIGN') {
+            const level = TacticalApp.CAMPAIGN_LEVELS.find(l => l.id === this.currentCampaignLevelId);
+            if (level && this.scene.tacticalEntities.size < level.entities.length) {
+                this.deployLevelEntities(level, this.currentGridSize);
+                this.resetMissionScore(level.entities);
+            }
+        }
     }
 
     /**
@@ -1504,6 +1843,21 @@ class TacticalApp {
     }
 
     /**
+     * Triggers cinematic screen border collision flash vignette animation.
+     */
+    triggerCollisionVignette() {
+        const viewportSection = document.querySelector('.viewport-section');
+        if (viewportSection) {
+            viewportSection.classList.remove('collision-active');
+            void viewportSection.offsetWidth;
+            viewportSection.classList.add('collision-active');
+            setTimeout(() => {
+                viewportSection.classList.remove('collision-active');
+            }, 550);
+        }
+    }
+
+    /**
      * Executes single module in isolation (FR-3 Unit Test).
      * @param {number} stageIndex
      * @returns {Promise<boolean>}
@@ -1527,6 +1881,27 @@ class TacticalApp {
         this.logTelemetry(`STARTING UNIT TEST: ${stage.name}...`, 'INFO');
         this.setMissionBanner(`UNIT TESTING ${stage.name}...`, 'INFO');
 
+        const entitySnapshot = this.scene.snapshotEntities();
+        const initialScore = this.tacticalScore;
+        const initialRocks = this.collectedRocksCount;
+        const initialEnergy = this.collectedEnergyCount;
+        const initialAnomalies = this.scannedAnomaliesCount;
+        const initialCheckpoints = new Set(this.reachedCheckpoints);
+
+        const restoreTestState = async (delayMs = 1200) => {
+            if (delayMs > 0) {
+                await new Promise(r => setTimeout(r, delayMs / this.scene.stepSpeedMultiplier));
+            }
+            this.scene.restoreEntitiesSnapshot(entitySnapshot);
+            this.tacticalScore = initialScore;
+            this.collectedRocksCount = initialRocks;
+            this.collectedEnergyCount = initialEnergy;
+            this.scannedAnomaliesCount = initialAnomalies;
+            this.reachedCheckpoints = initialCheckpoints;
+            this.updateScoreHUD(false);
+            this.logTelemetry('UNIT TEST ISOLATION COMPLETE: TACTICAL SAMPLES & ANOMALIES RESTORED TO MAP SECTOR.', 'INFO');
+        };
+
         this.scene.setRoverState(stage.startX, stage.startY, stage.startHeading);
         this.updateTelemetryHUD(stage.startX, stage.startY, stage.startHeading, stage.targetX, stage.targetY);
 
@@ -1537,6 +1912,7 @@ class TacticalApp {
 
         for (let i = 0; i < compileResult.steps.length; i++) {
             if (this.shouldHalt) {
+                await restoreTestState(0);
                 this.setExecutionLock(false);
                 return false;
             }
@@ -1554,10 +1930,13 @@ class TacticalApp {
                 else if (headingNorm === 3) nextX -= 1;
 
                 if (!this.scene.isWithinBounds(nextX, nextY)) {
-                    this.audio.playAlert();
+                    this.triggerCollisionVignette();
+                    this.audio.playCollision();
+                    this.scene.triggerCollision(nextX, nextY, currentX, currentY);
                     this.logTelemetry(`CRITICAL: VEHICLE ATTEMPTED OUT OF BOUNDS MOVE TO (${nextX}, ${nextY})`, 'OUT_OF_BOUNDS');
                     this.setMissionBanner(`FAIL: OUT_OF_BOUNDS AT (${nextX}, ${nextY})`, 'OUT_OF_BOUNDS');
                     this.updateStageIndicator(stage.id, 'FAIL');
+                    await restoreTestState(1000);
                     this.setExecutionLock(false);
                     return false;
                 }
@@ -1569,38 +1948,33 @@ class TacticalApp {
                     this.logTelemetry(`CRITICAL DETONATION: VEHICLE DESTROYED BY EXPLOSIVE MINE AT (${nextX}, ${nextY})`, 'COLLISION');
                     this.setMissionBanner(`💥 ¡BOOOOM! ¡MINA DETONADA EN (${nextX}, ${nextY})! VEHÍCULO DESTRUIDO`, 'COLLISION');
                     this.updateStageIndicator(stage.id, 'FAIL');
+                    await restoreTestState(1200);
                     this.setExecutionLock(false);
                     return false;
                 }
 
                 if (this.scene.isHazard(nextX, nextY)) {
-                    this.audio.playAlert();
+                    this.triggerCollisionVignette();
+                    this.audio.playCollision();
+                    this.scene.triggerCollision(nextX, nextY, currentX, currentY);
                     this.logTelemetry(`COLLISION DETECTED WITH DEFENSE PYLON AT (${nextX}, ${nextY})`, 'COLLISION');
                     this.setMissionBanner(`FAIL: COLLISION AT (${nextX}, ${nextY})`, 'COLLISION');
                     this.updateStageIndicator(stage.id, 'FAIL');
+                    await restoreTestState(1000);
                     this.setExecutionLock(false);
                     return false;
                 }
 
                 if (this.scene.isAnomaly(nextX, nextY)) {
-                    this.audio.playAlert();
+                    this.triggerCollisionVignette();
+                    this.audio.playCollision();
+                    this.scene.triggerCollision(nextX, nextY, currentX, currentY);
                     this.logTelemetry(`COLAPSO ESTRUCTURAL: PISÓ UNA GRIETA INESTABLE EN (${nextX}, ${nextY}) SIN ESCANEAR CON SCAN().`, 'COLLISION');
                     this.setMissionBanner(`FAIL: GRIETA INESTABLE COLAPSADA EN (${nextX}, ${nextY})`, 'COLLISION');
                     this.updateStageIndicator(stage.id, 'FAIL');
+                    await restoreTestState(1000);
                     this.setExecutionLock(false);
                     return false;
-                }
-
-                if (this.scene.isRockSample(nextX, nextY)) {
-                    this.scene.collectRock(nextX, nextY);
-                    this.audio.playSuccess();
-                    this.logTelemetry(`MUESTRA GEOLÓGICA EXTRAÍDA EN (${nextX}, ${nextY})! DATOS CIENTÍFICOS ALMACENADOS.`, 'PASS');
-                }
-
-                if (this.scene.isEnergyCell(nextX, nextY)) {
-                    this.scene.collectEnergy(nextX, nextY);
-                    this.audio.playSuccess();
-                    this.logTelemetry(`ENERGY CELL COLLECTED AT (${nextX}, ${nextY})! SYSTEMS RECHARGED.`, 'PASS');
                 }
 
                 this.audio.playMove();
@@ -1608,6 +1982,26 @@ class TacticalApp {
                 currentX = nextX;
                 currentY = nextY;
                 this.updateTelemetryHUD(currentX, currentY, currentHeading, stage.targetX, stage.targetY);
+
+                if (this.scene.isRockSample(nextX, nextY)) {
+                    this.scene.collectRock(nextX, nextY);
+                    this.audio.playRockPickup();
+                    this.collectedRocksCount++;
+                    this.tacticalScore += 100;
+                    this.updateScoreHUD();
+                    this.pulseMetricHUD('metricRocksCount');
+                    this.logTelemetry(`MUESTRA GEOLÓGICA EXTRAÍDA EN (${nextX}, ${nextY})! +100 PTS.`, 'PASS');
+                }
+
+                if (this.scene.isEnergyCell(nextX, nextY)) {
+                    this.scene.collectEnergy(nextX, nextY);
+                    this.audio.playEnergyPickup();
+                    this.collectedEnergyCount++;
+                    this.tacticalScore += 50;
+                    this.updateScoreHUD();
+                    this.pulseMetricHUD('metricEnergyCount');
+                    this.logTelemetry(`CÉLULA DE ENERGÍA RECARGADA EN (${nextX}, ${nextY})! +50 PTS.`, 'PASS');
+                }
             } else if (step.action === 'ROTATE_RIGHT') {
                 currentHeading = (currentHeading + 1) % 4;
                 this.audio.playRotate();
@@ -1622,6 +2016,12 @@ class TacticalApp {
                 this.audio.playScan();
                 const scanReport = this.scene.triggerRadarScan();
                 if (scanReport && scanReport.detectedHazards && scanReport.detectedHazards.length > 0) {
+                    const unmaskedAnomalies = scanReport.detectedHazards.filter(h => h.wasAnomaly);
+                    if (unmaskedAnomalies.length > 0) {
+                        this.scannedAnomaliesCount += unmaskedAnomalies.length;
+                        this.tacticalScore += unmaskedAnomalies.length * 150;
+                        this.updateScoreHUD();
+                    }
                     const coords = scanReport.detectedHazards.map(h => `${h.type} (${h.x}, ${h.y})`).join(', ');
                     this.logTelemetry(`RADAR RECON: ${scanReport.detectedHazards.length} CONTACTS DETECTED: [${coords}]`, 'COLLISION');
                     this.setMissionBanner(`RADAR SCAN: ${scanReport.detectedHazards.length} TARGET(S) WITHIN 3.5 CELLS`, 'COLLISION');
@@ -1636,9 +2036,14 @@ class TacticalApp {
         if (currentX === stage.targetX && currentY === stage.targetY) {
             testPassed = true;
             this.scene.pulseBeacon(stage.targetId);
+            if (!this.reachedCheckpoints.has(stage.targetId)) {
+                this.reachedCheckpoints.add(stage.targetId);
+                this.tacticalScore += 250;
+                this.updateScoreHUD();
+            }
             this.audio.playSuccess();
-            this.logTelemetry(`UNIT TEST PASSED: REACHED TARGET ${stage.targetId} AT (${currentX}, ${currentY})`, 'PASS');
-            this.setMissionBanner(`UNIT TEST SUCCESSFUL: ${stage.name} QUALIFIED`, 'PASS');
+            this.logTelemetry(`UNIT TEST PASSED: REACHED TARGET ${stage.targetId} AT (${currentX}, ${currentY}) (+250 PTS)`, 'PASS');
+            this.setMissionBanner(`UNIT TEST SUCCESSFUL: ${stage.name} QUALIFIED &bull; ${this.tacticalScore} PTS`, 'PASS');
             this.updateStageIndicator(stage.id, 'PASS');
         } else {
             this.audio.playAlert();
@@ -1647,6 +2052,7 @@ class TacticalApp {
             this.updateStageIndicator(stage.id, 'FAIL');
         }
 
+        await restoreTestState(1200);
         this.setExecutionLock(false);
         return testPassed;
     }
@@ -1657,6 +2063,14 @@ class TacticalApp {
      */
     async runFullPipeline() {
         if (this.isExecuting || this.stages.length === 0) return false;
+
+        if (this.currentMode === 'CAMPAIGN') {
+            const level = TacticalApp.CAMPAIGN_LEVELS.find(l => l.id === this.currentCampaignLevelId) || TacticalApp.CAMPAIGN_LEVELS[0];
+            this.deployLevelEntities(level, this.currentGridSize);
+            this.resetMissionScore(level.entities);
+        } else {
+            this.resetMissionScore();
+        }
 
         this.setExecutionLock(true);
         this.shouldHalt = false;
@@ -1718,7 +2132,9 @@ class TacticalApp {
                     else if (headingNorm === 3) nextX -= 1;
 
                     if (!this.scene.isWithinBounds(nextX, nextY)) {
-                        this.audio.playAlert();
+                        this.triggerCollisionVignette();
+                        this.audio.playCollision();
+                        this.scene.triggerCollision(nextX, nextY, currentX, currentY);
                         this.logTelemetry(`PIPELINE FAILURE: ${stage.name} MOVED OUT OF BOUNDS AT (${nextX}, ${nextY})`, 'OUT_OF_BOUNDS');
                         this.setMissionBanner(`PIPELINE FAILED: OUT OF BOUNDS IN ${stage.name}`, 'OUT_OF_BOUNDS');
                         this.updateStageIndicator(stage.id, 'FAIL');
@@ -1738,7 +2154,9 @@ class TacticalApp {
                     }
 
                     if (this.scene.isHazard(nextX, nextY)) {
-                        this.audio.playAlert();
+                        this.triggerCollisionVignette();
+                        this.audio.playCollision();
+                        this.scene.triggerCollision(nextX, nextY, currentX, currentY);
                         this.logTelemetry(`PIPELINE FAILURE: ${stage.name} COLLIDED AT (${nextX}, ${nextY})`, 'COLLISION');
                         this.setMissionBanner(`PIPELINE FAILED: COLLISION IN ${stage.name}`, 'COLLISION');
                         this.updateStageIndicator(stage.id, 'FAIL');
@@ -1747,7 +2165,9 @@ class TacticalApp {
                     }
 
                     if (this.scene.isAnomaly(nextX, nextY)) {
-                        this.audio.playAlert();
+                        this.triggerCollisionVignette();
+                        this.audio.playCollision();
+                        this.scene.triggerCollision(nextX, nextY, currentX, currentY);
                         this.logTelemetry(`PIPELINE FALLIDO: ${stage.name} PISÓ UNA GRIETA INESTABLE EN (${nextX}, ${nextY}) SIN ESCANEAR CON SCAN().`, 'COLLISION');
                         this.setMissionBanner(`PIPELINE FALLIDO: GRIETA COLAPSADA EN ${stage.name}`, 'COLLISION');
                         this.updateStageIndicator(stage.id, 'FAIL');
@@ -1755,23 +2175,31 @@ class TacticalApp {
                         return false;
                     }
 
-                    if (this.scene.isRockSample(nextX, nextY)) {
-                        this.scene.collectRock(nextX, nextY);
-                        this.audio.playSuccess();
-                        this.logTelemetry(`MUESTRA GEOLÓGICA EXTRAÍDA EN (${nextX}, ${nextY}) EN ${stage.name}! RECOLECCIÓN EXITOSA.`, 'PASS');
-                    }
-
-                    if (this.scene.isEnergyCell(nextX, nextY)) {
-                        this.scene.collectEnergy(nextX, nextY);
-                        this.audio.playSuccess();
-                        this.logTelemetry(`ENERGY CELL COLLECTED AT (${nextX}, ${nextY}) IN ${stage.name}!`, 'PASS');
-                    }
-
                     this.audio.playMove();
                     await this.scene.tweenMove(nextX, nextY);
                     currentX = nextX;
                     currentY = nextY;
                     this.updateTelemetryHUD(currentX, currentY, currentHeading, stage.targetX, stage.targetY);
+
+                    if (this.scene.isRockSample(nextX, nextY)) {
+                        this.scene.collectRock(nextX, nextY);
+                        this.audio.playRockPickup();
+                        this.collectedRocksCount++;
+                        this.tacticalScore += 100;
+                        this.updateScoreHUD();
+                        this.pulseMetricHUD('metricRocksCount');
+                        this.logTelemetry(`MUESTRA GEOLÓGICA EXTRAÍDA EN (${nextX}, ${nextY}) EN ${stage.name}! (+100 PTS)`, 'PASS');
+                    }
+
+                    if (this.scene.isEnergyCell(nextX, nextY)) {
+                        this.scene.collectEnergy(nextX, nextY);
+                        this.audio.playEnergyPickup();
+                        this.collectedEnergyCount++;
+                        this.tacticalScore += 50;
+                        this.updateScoreHUD();
+                        this.pulseMetricHUD('metricEnergyCount');
+                        this.logTelemetry(`CÉLULA DE ENERGÍA RECARGADA EN (${nextX}, ${nextY}) EN ${stage.name}! (+50 PTS)`, 'PASS');
+                    }
                 } else if (step.action === 'ROTATE_RIGHT') {
                     currentHeading = (currentHeading + 1) % 4;
                     this.audio.playRotate();
@@ -1786,6 +2214,12 @@ class TacticalApp {
                     this.audio.playScan();
                     const scanReport = this.scene.triggerRadarScan();
                     if (scanReport && scanReport.detectedHazards && scanReport.detectedHazards.length > 0) {
+                        const unmaskedAnomalies = scanReport.detectedHazards.filter(h => h.wasAnomaly);
+                        if (unmaskedAnomalies.length > 0) {
+                            this.scannedAnomaliesCount += unmaskedAnomalies.length;
+                            this.tacticalScore += unmaskedAnomalies.length * 150;
+                            this.updateScoreHUD();
+                        }
                         const coords = scanReport.detectedHazards.map(h => `${h.type} (${h.x}, ${h.y})`).join(', ');
                         this.logTelemetry(`RADAR RECON: ${scanReport.detectedHazards.length} TARGETS IDENTIFIED: [${coords}]`, 'COLLISION');
                         this.setMissionBanner(`RADAR SCAN: ${scanReport.detectedHazards.length} HAZARD(S) WITHIN 3.5 CELLS`, 'COLLISION');
@@ -1800,10 +2234,15 @@ class TacticalApp {
             if (currentX === stage.targetX && currentY === stage.targetY) {
                 this.scene.pulseBeacon(stage.targetId);
                 reachedCheckpoints.push(stage.targetId);
+                if (!this.reachedCheckpoints.has(stage.targetId)) {
+                    this.reachedCheckpoints.add(stage.targetId);
+                    this.tacticalScore += 250;
+                    this.updateScoreHUD();
+                }
                 const nextTarget = this.stages[s + 1] ? this.stages[s + 1].targetId : null;
                 this.scene.updateAllBeaconStatuses(reachedCheckpoints, nextTarget);
                 this.audio.playSuccess();
-                this.logTelemetry(`STAGE ${s + 1} COMPLETE: HANDOVER AT ${stage.targetId} (${currentX}, ${currentY})`, 'PASS');
+                this.logTelemetry(`STAGE ${s + 1} COMPLETE: HANDOVER AT ${stage.targetId} (${currentX}, ${currentY}) (+250 PTS)`, 'PASS');
                 this.updateStageIndicator(stage.id, 'PASS');
             } else {
                 this.audio.playAlert();
@@ -1815,9 +2254,23 @@ class TacticalApp {
             }
         }
 
+        let totalBudget = 0;
+        let usedBudget = 0;
+        for (const st of this.stages) {
+            totalBudget += st.memoryLimit || 10;
+            const lines = (this.codeBuffers.get(st.id) || '').split('\n').filter(l => l.trim().length > 0);
+            usedBudget += lines.length;
+        }
+        if (usedBudget <= totalBudget) {
+            this.tacticalScore += 200;
+            this.logTelemetry(`MEMORY EFFICIENCY BONUS: +200 PTS (${usedBudget}/${totalBudget} ALLOCATED SLOTS).`, 'PASS');
+        }
+
+        this.updateScoreHUD(true);
+        const finalRank = this.dom.missionRankBadge ? this.dom.missionRankBadge.textContent : 'ORO';
         this.audio.playSuccess();
-        this.logTelemetry('MISSION ACCOMPLISHED: ALL PIPELINE STAGES VALIDATED AND EXECUTED.', 'PASS');
-        this.setMissionBanner('FULL PIPELINE CERTIFIED: MISSION ACCOMPLISHED (100% OPERATIONAL)', 'PASS');
+        this.logTelemetry(`MISSION ACCOMPLISHED: ALL PIPELINE STAGES VALIDATED. RANK: ${finalRank} | SCORE: ${this.tacticalScore} PTS.`, 'PASS');
+        this.setMissionBanner(`¡MISIÓN CUMPLIDA! RANGO ${finalRank} &bull; PUNTUACIÓN: ${this.tacticalScore} PTS`, 'PASS');
         this.setExecutionLock(false);
         return true;
     }

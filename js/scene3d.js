@@ -108,6 +108,7 @@ class TacticalScene {
         this.tacticalEntities = new Map();
         this.radarPulses = [];
         this.activeExplosions = [];
+        this.activePickups = [];
 
         this.hazardEditMode = false;
         this.selectedPlacementType = 'PYLON';
@@ -124,6 +125,7 @@ class TacticalScene {
         this.cameraShakeMaxDuration = 0.001;
         this.cameraDefaultPosition = new THREE.Vector3(38, 48, 46);
         this.roverBlastRecoil = null;
+        this.roverPickupHop = null;
 
         this.animationFrameId = null;
         this.clock = new THREE.Clock();
@@ -1049,6 +1051,7 @@ class TacticalScene {
         if (ent && ent.type === 'ENERGY') {
             this.entitiesGroup.remove(ent.group);
             this.tacticalEntities.delete(`${x},${y}`);
+            this.triggerPickupEffect(x, y, 'ENERGY');
             return true;
         }
         return false;
@@ -1065,6 +1068,7 @@ class TacticalScene {
         if (ent && ent.type === 'ROCK_SAMPLE') {
             this.entitiesGroup.remove(ent.group);
             this.tacticalEntities.delete(`${x},${y}`);
+            this.triggerPickupEffect(x, y, 'ROCK_SAMPLE');
             return true;
         }
         return false;
@@ -1184,10 +1188,15 @@ class TacticalScene {
             const child = this.explosionsGroup.children[0];
             this.explosionsGroup.remove(child);
             if (child.geometry) child.geometry.dispose();
-            if (child.material) child.material.dispose();
+            if (child.material) {
+                if (child.material.map) child.material.map.dispose();
+                child.material.dispose();
+            }
         }
         this.activeExplosions = [];
+        this.activePickups = [];
         this.roverBlastRecoil = null;
+        this.roverPickupHop = null;
     }
 
     /**
@@ -1215,6 +1224,46 @@ class TacticalScene {
         this.buildInitialEntities();
         if (this.onEntityChanged) {
             this.onEntityChanged({ action: 'RESET', count: this.tacticalEntities.size });
+        }
+    }
+
+    /**
+     * Captures a lightweight serializable state snapshot of all tactical entities.
+     * @returns {Array<{x: number, y: number, type: string, revealType?: string}>}
+     */
+    snapshotEntities() {
+        const snapshot = [];
+        for (const [, entity] of this.tacticalEntities) {
+            snapshot.push({
+                x: entity.x,
+                y: entity.y,
+                type: entity.type,
+                revealType: entity.revealType
+            });
+        }
+        return snapshot;
+    }
+
+    /**
+     * Restores tactical entities from a state snapshot.
+     * @param {Array<{x: number, y: number, type: string, revealType?: string}>} snapshot
+     */
+    restoreEntitiesSnapshot(snapshot) {
+        if (!Array.isArray(snapshot)) return;
+        this.clearExplosions();
+        while (this.entitiesGroup.children.length > 0) {
+            const child = this.entitiesGroup.children[0];
+            this.entitiesGroup.remove(child);
+            if (child.geometry) child.geometry.dispose();
+            if (child.material) child.material.dispose();
+        }
+        this.tacticalEntities.clear();
+        for (const item of snapshot) {
+            const entity = this.createEntityMesh(item.x, item.y, item.type);
+            if (item.revealType) {
+                entity.revealType = item.revealType;
+            }
+            this.tacticalEntities.set(`${item.x},${item.y}`, entity);
         }
     }
 
@@ -1739,6 +1788,149 @@ class TacticalScene {
     }
 
     /**
+     * Spawns physical collision particle burst, sparks, debris, vehicle recoil and camera shock.
+     * @param {number} targetX
+     * @param {number} targetY
+     * @param {number} [fromX]
+     * @param {number} [fromY]
+     */
+    triggerCollision(targetX, targetY, fromX, fromY) {
+        const targetWorld = this.gridToWorld(targetX, targetY);
+        const fromWorld = (fromX !== undefined && fromY !== undefined)
+            ? this.gridToWorld(fromX, fromY)
+            : { x: this.roverGroup.position.x, z: this.roverGroup.position.z };
+
+        const contactX = (targetWorld.x + fromWorld.x) * 0.5;
+        const contactZ = (targetWorld.z + fromWorld.z) * 0.5;
+        const contactY = 0.55;
+
+        const blastLight = new THREE.PointLight(0xffaa22, 9, 18);
+        blastLight.position.set(contactX, contactY + 0.4, contactZ);
+        this.explosionsGroup.add(blastLight);
+
+        const shockRingGeo = new THREE.RingGeometry(0.15, 0.55, 24);
+        const shockRingMat = new THREE.MeshBasicMaterial({
+            color: 0xffaa00,
+            side: THREE.DoubleSide,
+            transparent: true,
+            opacity: 0.95,
+            blending: THREE.AdditiveBlending
+        });
+        const shockRingMesh = new THREE.Mesh(shockRingGeo, shockRingMat);
+        shockRingMesh.rotation.x = -Math.PI / 2;
+        shockRingMesh.position.set(contactX, 0.06, contactZ);
+        this.explosionsGroup.add(shockRingMesh);
+
+        const normalX = fromWorld.x - targetWorld.x;
+        const normalZ = fromWorld.z - targetWorld.z;
+        const len = Math.hypot(normalX, normalZ) || 1.0;
+        const dirX = normalX / len;
+        const dirZ = normalZ / len;
+
+        const sparkCount = 90;
+        const sparkPositions = new Float32Array(sparkCount * 3);
+        const sparkVelocities = new Float32Array(sparkCount * 3);
+        for (let i = 0; i < sparkCount; i++) {
+            sparkPositions[i * 3] = contactX + (Math.random() - 0.5) * 0.25;
+            sparkPositions[i * 3 + 1] = contactY + (Math.random() - 0.5) * 0.25;
+            sparkPositions[i * 3 + 2] = contactZ + (Math.random() - 0.5) * 0.25;
+
+            const spread = (Math.random() - 0.5) * 2.2;
+            const outwardSpeed = 4.0 + Math.random() * 9.0;
+            const upSpeed = 2.5 + Math.random() * 7.0;
+
+            sparkVelocities[i * 3] = (dirX * outwardSpeed) + spread * 3.0;
+            sparkVelocities[i * 3 + 1] = upSpeed;
+            sparkVelocities[i * 3 + 2] = (dirZ * outwardSpeed) + spread * 3.0;
+        }
+        const sparkGeo = new THREE.BufferGeometry();
+        sparkGeo.setAttribute('position', new THREE.BufferAttribute(sparkPositions, 3));
+        const sparkMat = new THREE.PointsMaterial({
+            color: 0xffea00,
+            size: 0.45,
+            transparent: true,
+            opacity: 1.0,
+            blending: THREE.AdditiveBlending
+        });
+        const sparkPoints = new THREE.Points(sparkGeo, sparkMat);
+        this.explosionsGroup.add(sparkPoints);
+
+        const debrisCount = 45;
+        const debrisPositions = new Float32Array(debrisCount * 3);
+        const debrisVelocities = new Float32Array(debrisCount * 3);
+        for (let i = 0; i < debrisCount; i++) {
+            debrisPositions[i * 3] = contactX;
+            debrisPositions[i * 3 + 1] = contactY;
+            debrisPositions[i * 3 + 2] = contactZ;
+
+            const speed = 3.0 + Math.random() * 6.5;
+            debrisVelocities[i * 3] = (dirX * speed) + (Math.random() - 0.5) * 4.0;
+            debrisVelocities[i * 3 + 1] = 1.5 + Math.random() * 4.5;
+            debrisVelocities[i * 3 + 2] = (dirZ * speed) + (Math.random() - 0.5) * 4.0;
+        }
+        const debrisGeo = new THREE.BufferGeometry();
+        debrisGeo.setAttribute('position', new THREE.BufferAttribute(debrisPositions, 3));
+        const debrisMat = new THREE.PointsMaterial({
+            color: 0xf97316,
+            size: 0.75,
+            transparent: true,
+            opacity: 1.0,
+            blending: THREE.AdditiveBlending
+        });
+        const firePoints = new THREE.Points(debrisGeo, debrisMat);
+        this.explosionsGroup.add(firePoints);
+
+        const smokeCount = 35;
+        const smokePositions = new Float32Array(smokeCount * 3);
+        const smokeVelocities = new Float32Array(smokeCount * 3);
+        for (let i = 0; i < smokeCount; i++) {
+            smokePositions[i * 3] = contactX + (Math.random() - 0.5) * 0.4;
+            smokePositions[i * 3 + 1] = contactY;
+            smokePositions[i * 3 + 2] = contactZ + (Math.random() - 0.5) * 0.4;
+
+            smokeVelocities[i * 3] = (dirX * 1.5) + (Math.random() - 0.5) * 1.5;
+            smokeVelocities[i * 3 + 1] = 1.0 + Math.random() * 2.5;
+            smokeVelocities[i * 3 + 2] = (dirZ * 1.5) + (Math.random() - 0.5) * 1.5;
+        }
+        const smokeGeo = new THREE.BufferGeometry();
+        smokeGeo.setAttribute('position', new THREE.BufferAttribute(smokePositions, 3));
+        const smokeMat = new THREE.PointsMaterial({
+            color: 0x475569,
+            size: 1.2,
+            transparent: true,
+            opacity: 0.8
+        });
+        const smokePoints = new THREE.Points(smokeGeo, smokeMat);
+        this.explosionsGroup.add(smokePoints);
+
+        this.activeExplosions.push({
+            blastLight,
+            shockRingMesh,
+            firePoints,
+            fireVelocities: debrisVelocities,
+            sparkPoints,
+            sparkVelocities,
+            smokePoints,
+            smokeVelocities,
+            age: 0,
+            maxAge: 0.75
+        });
+
+        this.roverBlastRecoil = {
+            age: 0,
+            maxAge: 0.4,
+            baseY: this.roverGroup.position.y,
+            rotX: this.roverGroup.rotation.x,
+            rotZ: this.roverGroup.rotation.z,
+            tiltX: -dirZ * 0.35,
+            tiltZ: dirX * 0.35,
+            jump: 0.35
+        };
+
+        this.triggerCameraShake(0.65, 0.35);
+    }
+
+    /**
      * Shakes camera upon impact or detonation without altering base camera transform.
      * @param {number} intensity
      * @param {number} duration
@@ -1751,6 +1943,137 @@ class TacticalScene {
         this.cameraShakeIntensity = intensity;
         this.cameraShakeDuration = duration;
         this.cameraShakeMaxDuration = Math.max(0.001, duration);
+    }
+
+    /**
+     * Spawns physical pickup burst, glowing shock ring, floating 3D score billboard, and rover suspension hop.
+     * @param {number} x
+     * @param {number} y
+     * @param {'ENERGY' | 'ROCK_SAMPLE'} type
+     */
+    triggerPickupEffect(x, y, type) {
+        const worldPos = this.gridToWorld(x, y);
+        const isEnergy = type === 'ENERGY';
+        const colorHex = isEnergy ? 0x00ffcc : 0xffb700;
+        const scoreText = isEnergy ? '+50' : '+100';
+        const scoreColorStr = isEnergy ? '#00f0ff' : '#fbbf24';
+
+        const pickupLight = new THREE.PointLight(colorHex, 5.5, 14);
+        pickupLight.position.set(worldPos.x, 1.2, worldPos.z);
+        this.explosionsGroup.add(pickupLight);
+
+        const shockRingGeo = new THREE.RingGeometry(0.15, 0.45, 32);
+        const shockRingMat = new THREE.MeshBasicMaterial({
+            color: colorHex,
+            side: THREE.DoubleSide,
+            transparent: true,
+            opacity: 0.95,
+            blending: THREE.AdditiveBlending
+        });
+        const shockRingMesh = new THREE.Mesh(shockRingGeo, shockRingMat);
+        shockRingMesh.rotation.x = -Math.PI / 2;
+        shockRingMesh.position.set(worldPos.x, 0.1, worldPos.z);
+        this.explosionsGroup.add(shockRingMesh);
+
+        const scoreSprite = this.createScorePopupSprite(scoreText, scoreColorStr);
+        scoreSprite.position.set(worldPos.x, 0.9, worldPos.z);
+        this.explosionsGroup.add(scoreSprite);
+
+        const particleCount = 42;
+        const positions = new Float32Array(particleCount * 3);
+        const velocities = new Float32Array(particleCount * 3);
+        for (let i = 0; i < particleCount; i++) {
+            positions[i * 3] = worldPos.x + (Math.random() - 0.5) * 0.25;
+            positions[i * 3 + 1] = 0.45 + Math.random() * 0.25;
+            positions[i * 3 + 2] = worldPos.z + (Math.random() - 0.5) * 0.25;
+
+            const angle = Math.random() * Math.PI * 2;
+            const horizSpeed = 1.6 + Math.random() * 3.2;
+            const upSpeed = 2.8 + Math.random() * 4.6;
+
+            velocities[i * 3] = Math.cos(angle) * horizSpeed;
+            velocities[i * 3 + 1] = upSpeed;
+            velocities[i * 3 + 2] = Math.sin(angle) * horizSpeed;
+        }
+
+        const partGeo = new THREE.BufferGeometry();
+        partGeo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+        const partMat = new THREE.PointsMaterial({
+            color: colorHex,
+            size: 0.75,
+            transparent: true,
+            opacity: 1.0,
+            blending: THREE.AdditiveBlending
+        });
+        const points = new THREE.Points(partGeo, partMat);
+        this.explosionsGroup.add(points);
+
+        this.activePickups.push({
+            age: 0,
+            maxAge: 0.75,
+            light: pickupLight,
+            maxLightIntensity: 5.5,
+            ringMesh: shockRingMesh,
+            scoreSprite: scoreSprite,
+            points: points,
+            velocities: velocities,
+            gravity: isEnergy ? -1.8 : -5.5
+        });
+
+        this.triggerRoverHop(0.18, 0.22);
+    }
+
+    /**
+     * Creates a camera-facing 3D billboard sprite with neon glowing score typography.
+     * @param {string} text
+     * @param {string} colorStr
+     * @returns {THREE.Sprite}
+     */
+    createScorePopupSprite(text, colorStr) {
+        const canvas = document.createElement('canvas');
+        canvas.width = 256;
+        canvas.height = 128;
+        const ctx = canvas.getContext('2d');
+        ctx.clearRect(0, 0, 256, 128);
+
+        ctx.font = '900 64px "Orbitron", monospace, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+
+        ctx.shadowColor = colorStr;
+        ctx.shadowBlur = 18;
+        ctx.fillStyle = '#ffffff';
+        ctx.fillText(text, 128, 64);
+
+        ctx.lineWidth = 4;
+        ctx.strokeStyle = colorStr;
+        ctx.strokeText(text, 128, 64);
+
+        const texture = new THREE.CanvasTexture(canvas);
+        texture.minFilter = THREE.LinearFilter;
+        const spriteMat = new THREE.SpriteMaterial({
+            map: texture,
+            transparent: true,
+            opacity: 1.0,
+            depthTest: false
+        });
+        const sprite = new THREE.Sprite(spriteMat);
+        sprite.scale.set(1.6, 0.8, 1.0);
+        return sprite;
+    }
+
+    /**
+     * Applies a vertical suspension bounce to rover chassis upon gathering items.
+     * @param {number} height
+     * @param {number} duration
+     */
+    triggerRoverHop(height = 0.18, duration = 0.22) {
+        this.roverPickupHop = {
+            age: 0,
+            maxAge: duration,
+            height: height,
+            baseY: this.roverGroup.position.y
+        };
     }
 
     /**
@@ -2218,6 +2541,75 @@ class TacticalScene {
                     exp.smokePoints.material.dispose();
                 }
                 this.activeExplosions.splice(i, 1);
+            }
+        }
+
+        for (let i = this.activePickups.length - 1; i >= 0; i--) {
+            const p = this.activePickups[i];
+            p.age += delta;
+            const progress = Math.min(1.0, p.age / p.maxAge);
+
+            if (p.light) {
+                p.light.intensity = Math.max(0, p.maxLightIntensity * (1.0 - progress));
+            }
+
+            if (p.ringMesh) {
+                const ringScale = 1.0 + progress * 5.2;
+                p.ringMesh.scale.set(ringScale, ringScale, 1.0);
+                p.ringMesh.material.opacity = Math.max(0, (1.0 - progress) * 0.95);
+            }
+
+            if (p.scoreSprite) {
+                p.scoreSprite.position.y += delta * 1.9;
+                p.scoreSprite.material.opacity = Math.max(0, 1.0 - progress * progress);
+                const s = 1.6 * (1.0 + progress * 0.3);
+                p.scoreSprite.scale.set(s, s * 0.5, 1.0);
+            }
+
+            if (p.points) {
+                const pos = p.points.geometry.attributes.position.array;
+                const count = pos.length / 3;
+                for (let j = 0; j < count; j++) {
+                    pos[j * 3] += p.velocities[j * 3] * delta;
+                    pos[j * 3 + 1] += p.velocities[j * 3 + 1] * delta;
+                    pos[j * 3 + 2] += p.velocities[j * 3 + 2] * delta;
+                    p.velocities[j * 3 + 1] += p.gravity * delta;
+                }
+                p.points.geometry.attributes.position.needsUpdate = true;
+                p.points.material.opacity = Math.max(0, 1.0 - progress);
+            }
+
+            if (p.age >= p.maxAge) {
+                if (p.light) {
+                    this.explosionsGroup.remove(p.light);
+                }
+                if (p.ringMesh) {
+                    this.explosionsGroup.remove(p.ringMesh);
+                    p.ringMesh.geometry.dispose();
+                    p.ringMesh.material.dispose();
+                }
+                if (p.scoreSprite) {
+                    this.explosionsGroup.remove(p.scoreSprite);
+                    if (p.scoreSprite.material.map) p.scoreSprite.material.map.dispose();
+                    p.scoreSprite.material.dispose();
+                }
+                if (p.points) {
+                    this.explosionsGroup.remove(p.points);
+                    p.points.geometry.dispose();
+                    p.points.material.dispose();
+                }
+                this.activePickups.splice(i, 1);
+            }
+        }
+
+        if (this.roverPickupHop) {
+            this.roverPickupHop.age += delta;
+            const t = Math.min(1.0, this.roverPickupHop.age / this.roverPickupHop.maxAge);
+            const bounce = Math.sin(t * Math.PI) * this.roverPickupHop.height;
+            this.roverGroup.position.y = this.roverPickupHop.baseY + bounce;
+            if (t >= 1.0) {
+                this.roverGroup.position.y = this.roverPickupHop.baseY;
+                this.roverPickupHop = null;
             }
         }
 

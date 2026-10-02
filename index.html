@@ -12,77 +12,93 @@
     <header class="tactical-header">
         <div class="header-brand">
             <div class="brand-icon"></div>
-            <h1 class="brand-title">TACTICAL VECTOR SIMULATOR 3D</h1>
-            <span class="brand-classification">ORDNANCE &amp; PIPELINE SIM</span>
+            <div class="brand-text-block">
+                <div class="brand-title-row">
+                    <h1 class="brand-title">TACTICAL VECTOR</h1>
+                    <span class="brand-badge-3d">3D</span>
+                </div>
+                <span class="brand-classification">ORDNANCE &amp; PIPELINE SIMULATOR</span>
+            </div>
         </div>
+
         <div class="header-controls">
-            <div class="header-item">
-                <label for="mode-select">MODO:</label>
-                <select id="mode-select" class="tactical-select">
-                    <option value="SANDBOX" selected>LIBRE / SANDBOX</option>
-                    <option value="CAMPAIGN">CAMPAÑA (10 NIVELES)</option>
-                    <option value="PROCEDURAL">PROCEDURAL (ALEATORIO)</option>
-                </select>
+            <div class="control-cluster">
+                <div class="header-item">
+                    <label for="mode-select">MODO</label>
+                    <select id="mode-select" class="tactical-select">
+                        <option value="CAMPAIGN" selected>CAMPAÑA (10 NIVELES)</option>
+                        <option value="SANDBOX">MODO LIBRE / CONSTRUCTOR</option>
+                        <option value="PROCEDURAL">PROCEDURAL (ALEATORIO)</option>
+                    </select>
+                </div>
+
+                <div id="campaign-controls-group" class="header-item">
+                    <label for="campaign-level-select">NIVEL</label>
+                    <select id="campaign-level-select" class="tactical-select highlight-select">
+                        <option value="1">1: INSERCIÓN VECTORIAL</option>
+                        <option value="2">2: MANIOBRA ORTOGONAL</option>
+                        <option value="3">3: LA GRIETA MISTERIOSA</option>
+                        <option value="4">4: MUESTREO CIENTÍFICO</option>
+                        <option value="5">5: CAMPO MINADO Y FISURAS</option>
+                        <option value="6">6: CANAL EN ZIGZAG</option>
+                        <option value="7">7: FALLA TECTÓNICA</option>
+                        <option value="8">8: LABERINTO DE BASALTO</option>
+                        <option value="9">9: EXPEDICIÓN GEO-ESPACIAL</option>
+                        <option value="10">10: GRAN DESAFÍO VECTORIAL</option>
+                    </select>
+                </div>
+
+                <div id="procedural-controls-group" class="header-item" style="display: none;">
+                    <button id="btn-generate-procedural" class="tactical-btn-small btn-highlight" type="button" title="Generar nueva misión procedural verificada con BFS">
+                        &#x1F3B2; NUEVA MISIÓN
+                    </button>
+                </div>
+
+                <div class="header-item">
+                    <label for="grid-size-select">TABLERO</label>
+                    <select id="grid-size-select" class="tactical-select">
+                        <option value="10">10x10</option>
+                        <option value="12" selected>12x12</option>
+                        <option value="14">14x14</option>
+                        <option value="16">16x16</option>
+                    </select>
+                </div>
+
+                <div class="header-item">
+                    <label for="module-count-select">ROLES</label>
+                    <select id="module-count-select" class="tactical-select">
+                        <option value="2">2 ROLES</option>
+                        <option value="3">3 ROLES</option>
+                        <option value="4" selected>4 ROLES (EQ. 4)</option>
+                        <option value="5">5 ROLES</option>
+                        <option value="6">6 ROLES</option>
+                    </select>
+                </div>
             </div>
 
-            <div class="header-item">
-                <label for="grid-size-select">TABLERO:</label>
-                <select id="grid-size-select" class="tactical-select">
-                    <option value="10">10x10 (COMPACTO)</option>
-                    <option value="12" selected>12x12 (ESTÁNDAR)</option>
-                    <option value="14">14x14 (EXTENDIDO)</option>
-                    <option value="16">16x16 (EXPEDICIÓN)</option>
-                </select>
+            <div class="control-cluster">
+                <div class="header-item">
+                    <label for="speed-select">VEL</label>
+                    <select id="speed-select" class="tactical-select speed-select">
+                        <option value="1">1.0x</option>
+                        <option value="2">2.0x</option>
+                        <option value="4">4.0x</option>
+                    </select>
+                </div>
+
+                <button id="btn-reset-camera" class="tactical-btn-small" type="button" title="Restablecer vista isométrica">&#x21B2; CAM</button>
+                <button id="btn-mute" class="tactical-btn-small" type="button" title="Alternar audio">AUDIO: ON</button>
             </div>
 
-            <div class="header-item">
-                <label for="module-count-select">MÓDULOS:</label>
-                <select id="module-count-select" class="tactical-select">
-                    <option value="2">2 ROLES (DÚO)</option>
-                    <option value="3">3 ROLES (EQUIPO 3)</option>
-                    <option value="4" selected>4 ROLES (EQUIPO 4)</option>
-                    <option value="5">5 ROLES (EQUIPO 5)</option>
-                    <option value="6">6 ROLES (TRIPULACIÓN COMPLETA)</option>
-                </select>
+            <div class="control-cluster control-cluster-accent">
+                <a href="fichas-imprimibles.html" target="_blank" class="tactical-btn-small btn-highlight" title="Imprimir hojas de ruta y planificación táctica en papel" style="text-decoration: none; display: inline-flex; align-items: center; gap: 4px;">
+                    &#x1F5B6;&#xFE0F; FICHAS EN PAPEL
+                </a>
             </div>
-
-            <div id="campaign-controls-group" class="header-item" style="display: none;">
-                <label for="campaign-level-select">NIVEL:</label>
-                <select id="campaign-level-select" class="tactical-select highlight-select">
-                    <option value="1">1: VECTOR DE INSERCIÓN</option>
-                    <option value="2">2: MANIOBRA ORTOGONAL</option>
-                    <option value="3">3: LA GRIETA MISTERIOSA</option>
-                    <option value="4">4: MUESTREO CIENTÍFICO</option>
-                    <option value="5">5: CAMPO MINADO Y FISURAS</option>
-                    <option value="6">6: CANAL EN ZIGZAG</option>
-                    <option value="7">7: FALLA TECTÓNICA</option>
-                    <option value="8">8: LABERINTO DE BASALTO</option>
-                    <option value="9">9: EXPEDICIÓN GEO-ESPACIAL</option>
-                    <option value="10">10: GRAN DESAFÍO VECTORIAL</option>
-                </select>
-            </div>
-
-            <div id="procedural-controls-group" class="header-item" style="display: none;">
-                <button id="btn-generate-procedural" class="tactical-btn-small btn-highlight" type="button" title="Generar nueva misión procedural verificada con BFS">
-                    &#x1F3B2; NUEVA MISIÓN
-                </button>
-            </div>
-
-            <div class="header-item">
-                <label for="speed-select">VELOCIDAD:</label>
-                <select id="speed-select" class="tactical-select">
-                    <option value="1">1.0x</option>
-                    <option value="2">2.0x</option>
-                    <option value="4">4.0x</option>
-                </select>
-            </div>
-
-            <button id="btn-reset-camera" class="tactical-btn-small" type="button" title="Restablecer vista de cámara isométrica">CAM &#x21B2;</button>
-            <button id="btn-mute" class="tactical-btn-small" type="button">AUDIO: ON</button>
         </div>
     </header>
 
-    <div id="sandbox-entity-picker" class="tactical-subtoolbar">
+    <div id="sandbox-entity-picker" class="tactical-subtoolbar" style="display: none;">
         <div class="subtoolbar-label">&#x2692; MODO CONSTRUCTOR:</div>
         <button id="btn-toggle-hazard-mode" class="tactical-btn-small" type="button" title="Activa para hacer clic en el tablero y colocar/remover entidades">
             COLOCAR: OFF
@@ -126,18 +142,44 @@
                 <div id="mission-status-banner" class="status-banner banner-info">
                     SYSTEM READY &bull; SELECT MODULE OR INITIATE PIPELINE
                 </div>
-                <div class="telemetry-card">
-                    <div class="telemetry-metric">
-                        <span class="metric-label">COORDINATES</span>
-                        <span id="telemetry-coordinates" class="metric-val">(1, 1)</span>
+                <div class="hud-top-row">
+                    <div class="telemetry-card">
+                        <div class="telemetry-metric">
+                            <span class="metric-label">COORDINATES</span>
+                            <span id="telemetry-coordinates" class="metric-val">(1, 1)</span>
+                        </div>
+                        <div class="telemetry-metric">
+                            <span class="metric-label">HEADING VECTOR</span>
+                            <span id="telemetry-heading" class="metric-val">NORTH (+Y)</span>
+                        </div>
+                        <div class="telemetry-metric">
+                            <span class="metric-label">TARGET BEACON</span>
+                            <span id="telemetry-target" class="metric-val">(1, 12)</span>
+                        </div>
                     </div>
-                    <div class="telemetry-metric">
-                        <span class="metric-label">HEADING VECTOR</span>
-                        <span id="telemetry-heading" class="metric-val">NORTH (+Y)</span>
-                    </div>
-                    <div class="telemetry-metric">
-                        <span class="metric-label">TARGET BEACON</span>
-                        <span id="telemetry-target" class="metric-val">(1, 12)</span>
+                    <div class="mission-score-card" id="mission-score-card">
+                        <div class="score-card-header">
+                            <span class="score-card-title">&#x1F3C6; RENDIMIENTO TÁCTICO</span>
+                            <span id="mission-rank-badge" class="score-rank-badge rank-bronze">BRONCE</span>
+                        </div>
+                        <div class="score-metrics-row">
+                            <div class="score-metric" title="Puntuación acumulada de la misión">
+                                <span class="score-metric-num" id="metric-score-total">0</span>
+                                <span class="score-metric-sub">PUNTOS</span>
+                            </div>
+                            <div class="score-metric" title="Muestras geológicas recolectadas (+100 pts c/u)">
+                                <span class="score-metric-num" id="metric-rocks-count"><span class="metric-icon">&#x2B22;</span> 0/0</span>
+                                <span class="score-metric-sub">GEODAS</span>
+                            </div>
+                            <div class="score-metric" title="Células de energía recargadas (+50 pts c/u)">
+                                <span class="score-metric-num" id="metric-energy-count"><span class="metric-icon">&#x25C6;</span> 0/0</span>
+                                <span class="score-metric-sub">ENERGÍA</span>
+                            </div>
+                            <div class="score-metric" title="Anomalías analizadas con radar (+150 pts c/u)">
+                                <span class="score-metric-num" id="metric-anomalies-count"><span class="metric-icon">&#x2668;</span> 0/0</span>
+                                <span class="score-metric-sub">ANOMALÍAS</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
