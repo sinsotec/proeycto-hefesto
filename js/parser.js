@@ -225,22 +225,24 @@ class TacticalParser {
 
                 if (commandName === TacticalParser.COMMAND_FORWARD) {
                     expect('(');
-                    let units = 1;
                     if (peek().type === 'NUMBER') {
                         const numToken = consume();
-                        units = Number(numToken.value);
-                        if (units <= 0) {
-                            throw new Error(`Line ${commandLine}: ${TacticalParser.COMMAND_FORWARD} argument must be greater than 0`);
+                        const units = Number(numToken.value);
+                        if (units !== 1) {
+                            throw new Error(`Line ${commandLine}: ${TacticalParser.COMMAND_FORWARD}() only advances 1 cell. To move multiple cells, use LOOP(n) { ${TacticalParser.COMMAND_FORWARD}() }`);
                         }
                     }
                     expect(')');
                     statements.push({
                         type: 'MOVE',
-                        count: units,
+                        count: 1,
                         line: commandLine
                     });
                 } else if (commandName === TacticalParser.COMMAND_TURN_RIGHT) {
                     expect('(');
+                    if (peek().type === 'NUMBER') {
+                        consume();
+                    }
                     expect(')');
                     statements.push({
                         type: 'ROTATE_RIGHT',
@@ -248,6 +250,9 @@ class TacticalParser {
                     });
                 } else if (commandName === TacticalParser.COMMAND_TURN_LEFT) {
                     expect('(');
+                    if (peek().type === 'NUMBER') {
+                        consume();
+                    }
                     expect(')');
                     statements.push({
                         type: 'ROTATE_LEFT',

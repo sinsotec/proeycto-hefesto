@@ -13,21 +13,111 @@
         <div class="header-brand">
             <div class="brand-icon"></div>
             <h1 class="brand-title">TACTICAL VECTOR SIMULATOR 3D</h1>
-            <span class="brand-classification">LEVEL-2 PIPELINE &bull; ORDNANCE SIM</span>
+            <span class="brand-classification">ORDNANCE &amp; PIPELINE SIM</span>
         </div>
         <div class="header-controls">
             <div class="header-item">
-                <label for="speed-select">SPEED:</label>
-                <select id="speed-select" class="tactical-select">
-                    <option value="1">1.0x NOMINAL</option>
-                    <option value="2">2.0x RAPID</option>
-                    <option value="4">4.0x HYPER</option>
+                <label for="mode-select">MODO:</label>
+                <select id="mode-select" class="tactical-select">
+                    <option value="SANDBOX" selected>LIBRE / SANDBOX</option>
+                    <option value="CAMPAIGN">CAMPAÑA (10 NIVELES)</option>
+                    <option value="PROCEDURAL">PROCEDURAL (ALEATORIO)</option>
                 </select>
             </div>
-            <button id="btn-reset-camera" class="tactical-btn-small" type="button">RESET VIEW</button>
+
+            <div class="header-item">
+                <label for="grid-size-select">TABLERO:</label>
+                <select id="grid-size-select" class="tactical-select">
+                    <option value="10">10x10 (COMPACTO)</option>
+                    <option value="12" selected>12x12 (ESTÁNDAR)</option>
+                    <option value="14">14x14 (EXTENDIDO)</option>
+                    <option value="16">16x16 (EXPEDICIÓN)</option>
+                </select>
+            </div>
+
+            <div class="header-item">
+                <label for="module-count-select">MÓDULOS:</label>
+                <select id="module-count-select" class="tactical-select">
+                    <option value="2">2 ROLES (DÚO)</option>
+                    <option value="3">3 ROLES (EQUIPO 3)</option>
+                    <option value="4" selected>4 ROLES (EQUIPO 4)</option>
+                    <option value="5">5 ROLES (EQUIPO 5)</option>
+                    <option value="6">6 ROLES (TRIPULACIÓN COMPLETA)</option>
+                </select>
+            </div>
+
+            <div id="campaign-controls-group" class="header-item" style="display: none;">
+                <label for="campaign-level-select">NIVEL:</label>
+                <select id="campaign-level-select" class="tactical-select highlight-select">
+                    <option value="1">1: VECTOR DE INSERCIÓN</option>
+                    <option value="2">2: MANIOBRA ORTOGONAL</option>
+                    <option value="3">3: LA GRIETA MISTERIOSA</option>
+                    <option value="4">4: MUESTREO CIENTÍFICO</option>
+                    <option value="5">5: CAMPO MINADO Y FISURAS</option>
+                    <option value="6">6: CANAL EN ZIGZAG</option>
+                    <option value="7">7: FALLA TECTÓNICA</option>
+                    <option value="8">8: LABERINTO DE BASALTO</option>
+                    <option value="9">9: EXPEDICIÓN GEO-ESPACIAL</option>
+                    <option value="10">10: GRAN DESAFÍO VECTORIAL</option>
+                </select>
+            </div>
+
+            <div id="procedural-controls-group" class="header-item" style="display: none;">
+                <button id="btn-generate-procedural" class="tactical-btn-small btn-highlight" type="button" title="Generar nueva misión procedural verificada con BFS">
+                    &#x1F3B2; NUEVA MISIÓN
+                </button>
+            </div>
+
+            <div class="header-item">
+                <label for="speed-select">VELOCIDAD:</label>
+                <select id="speed-select" class="tactical-select">
+                    <option value="1">1.0x</option>
+                    <option value="2">2.0x</option>
+                    <option value="4">4.0x</option>
+                </select>
+            </div>
+
+            <button id="btn-reset-camera" class="tactical-btn-small" type="button" title="Restablecer vista de cámara isométrica">CAM &#x21B2;</button>
             <button id="btn-mute" class="tactical-btn-small" type="button">AUDIO: ON</button>
         </div>
     </header>
+
+    <div id="sandbox-entity-picker" class="tactical-subtoolbar">
+        <div class="subtoolbar-label">&#x2692; MODO CONSTRUCTOR:</div>
+        <button id="btn-toggle-hazard-mode" class="tactical-btn-small" type="button" title="Activa para hacer clic en el tablero y colocar/remover entidades">
+            COLOCAR: OFF
+        </button>
+        <div class="entity-radio-group">
+            <label class="entity-radio-pill pill-pylon">
+                <input type="radio" name="placement-entity-type" value="PYLON" checked>
+                <span>&#x25B2; PILÓN OBSTÁCULO</span>
+            </label>
+            <label class="entity-radio-pill pill-mine">
+                <input type="radio" name="placement-entity-type" value="MINE">
+                <span>&#x2622; MINA EXPLOSIVA</span>
+            </label>
+            <label class="entity-radio-pill pill-energy">
+                <input type="radio" name="placement-entity-type" value="ENERGY">
+                <span>&#x25C6; ENERGÍA</span>
+            </label>
+            <label class="entity-radio-pill pill-rock">
+                <input type="radio" name="placement-entity-type" value="ROCK_SAMPLE">
+                <span>&#x2B22; MUESTRA ROCA</span>
+            </label>
+            <label class="entity-radio-pill pill-anomaly">
+                <input type="radio" name="placement-entity-type" value="ANOMALY">
+                <span>&#x2668; GRIETA ANOMALÍA</span>
+            </label>
+        </div>
+        <div class="subtoolbar-actions">
+            <button id="btn-clear-hazards" class="tactical-btn-small" type="button" title="Limpiar todos los objetos del tablero">
+                LIMPIAR MAPA
+            </button>
+            <button id="btn-reset-hazards" class="tactical-btn-small" type="button" title="Restaurar obstáculos predeterminados">
+                REINICIAR OBSTÁCULOS
+            </button>
+        </div>
+    </div>
 
     <main class="tactical-main-layout">
         <section class="viewport-section" aria-label="Tactical 3D World">
@@ -39,7 +129,7 @@
                 <div class="telemetry-card">
                     <div class="telemetry-metric">
                         <span class="metric-label">COORDINATES</span>
-                        <span id="telemetry-coordinates" class="metric-val">(2, 2)</span>
+                        <span id="telemetry-coordinates" class="metric-val">(1, 1)</span>
                     </div>
                     <div class="telemetry-metric">
                         <span class="metric-label">HEADING VECTOR</span>
@@ -47,12 +137,59 @@
                     </div>
                     <div class="telemetry-metric">
                         <span class="metric-label">TARGET BEACON</span>
-                        <span id="telemetry-target" class="metric-val">(2, 8)</span>
+                        <span id="telemetry-target" class="metric-val">(1, 12)</span>
                     </div>
                 </div>
             </div>
-            <div class="viewport-footer-legend">
-                GRID: 12x12 CARTESIAN ISOMETRIC &bull; X: [1..12] Y: [1..12]
+            <div class="tactical-legend-dock" id="tactical-legend" aria-label="Leyenda Táctica de Navegación">
+                <div class="legend-header">
+                    <span class="legend-title">&#x1F4CB; LEYENDA TÁCTICA</span>
+                    <div class="legend-header-actions">
+                        <button id="btn-expand-legend" class="legend-action-btn" type="button" title="Ampliar leyenda en grande">&#x26F6; AMPLIAR</button>
+                        <button id="btn-toggle-legend" class="legend-toggle-btn" type="button" title="Minimizar / Restaurar">&#x25BE;</button>
+                    </div>
+                </div>
+                <div class="legend-items-grid" id="legend-items-grid">
+                    <div class="legend-item" title="Vehículo autónomo de exploración espacial">
+                        <span class="legend-icon">&#x1F680;</span>
+                        <span class="legend-text"><strong>ROVER</strong>: Vehículo</span>
+                    </div>
+                    <div class="legend-item" title="Plataforma de despegue y origen (CP0)">
+                        <span class="legend-badge badge-base">CP0</span>
+                        <span class="legend-text"><strong>BASE</strong>: Inicio</span>
+                    </div>
+                    <div class="legend-item" title="Faros correspondientes a cada Módulo: Mod 1 (Cian), Mod 2 (Magenta), Mod 3 (Naranja), Mod 4 (Verde)">
+                        <span class="legend-badge" style="background: rgba(0,240,255,0.25); border: 1px solid #00f0ff; color: #00f0ff; padding: 1px 3px; font-size: 0.52rem; min-width: 14px;">M1</span>
+                        <span class="legend-badge" style="background: rgba(217,70,239,0.25); border: 1px solid #d946ef; color: #d946ef; padding: 1px 3px; font-size: 0.52rem; min-width: 14px;">M2</span>
+                        <span class="legend-badge" style="background: rgba(255,87,34,0.25); border: 1px solid #ff5722; color: #ff5722; padding: 1px 3px; font-size: 0.52rem; min-width: 14px;">M3</span>
+                        <span class="legend-badge" style="background: rgba(16,185,129,0.25); border: 1px solid #10b981; color: #10b981; padding: 1px 3px; font-size: 0.52rem; min-width: 14px;">M4</span>
+                        <span class="legend-text"><strong>FAROS</strong>: Mod 1-4</span>
+                    </div>
+                    <div class="legend-item" title="Baliza alcanzada y asegurada (Iluminada fija)">
+                        <span class="legend-badge badge-reached">&#x2714;</span>
+                        <span class="legend-text"><strong>ALCANZADO</strong>: Iluminado</span>
+                    </div>
+                    <div class="legend-item" title="Célula de energía para recargar el vehículo">
+                        <span class="legend-icon icon-energy">&#x2B21;</span>
+                        <span class="legend-text"><strong>ENERGÍA</strong>: Recarga (+1)</span>
+                    </div>
+                    <div class="legend-item" title="Muestra geológica para recolección científica">
+                        <span class="legend-icon icon-rock">&#x2B22;</span>
+                        <span class="legend-text"><strong>MUESTRA</strong>: Roca geoda</span>
+                    </div>
+                    <div class="legend-item" title="Pilón de defensa que bloquea el paso (Colisión fatal)">
+                        <span class="legend-icon icon-pylon">&#x26A1;</span>
+                        <span class="legend-text"><strong>PILÓN</strong>: Obstáculo</span>
+                    </div>
+                    <div class="legend-item" title="Mina explosiva oculta (Detona al pisarla, visible con SCAN)">
+                        <span class="legend-icon icon-mine">&#x1F4A5;</span>
+                        <span class="legend-text"><strong>MINA</strong>: Peligro</span>
+                    </div>
+                    <div class="legend-item" title="Falla de terreno oculta (Usar SCAN para revelar)">
+                        <span class="legend-icon icon-anomaly">&#x2668;</span>
+                        <span class="legend-text"><strong>GRIETA</strong>: Anomalía (Scan)</span>
+                    </div>
+                </div>
             </div>
         </section>
 
@@ -60,13 +197,29 @@
             <nav id="stage-tabs" class="stage-tabs-container"></nav>
             <div class="console-body">
                 <div class="palette-container">
-                    <div class="palette-label">COMMAND GRAMMAR PALETTE</div>
+                    <div class="palette-header-row">
+                        <div class="palette-label">COMMAND GRAMMAR PALETTE</div>
+                        <div class="editor-quick-actions">
+                            <button id="btn-delete-line" class="palette-utility-btn" type="button" title="Eliminar la última línea o selección">
+                                BORRAR LÍNEA
+                            </button>
+                            <button id="btn-clear-code" class="palette-utility-btn btn-danger-action" type="button" title="Limpiar buffer de código">
+                                LIMPIAR
+                            </button>
+                            <button id="btn-load-hint" class="palette-utility-btn" type="button" title="Cargar pista o solución de referencia">
+                                PISTA
+                            </button>
+                            <button id="btn-reset-code" class="palette-utility-btn" type="button" title="Restablecer código por defecto">
+                                REINICIAR
+                            </button>
+                        </div>
+                    </div>
                     <div class="palette-buttons-row">
-                        <button class="palette-btn" type="button" data-snippet="AVANZAR(1)">+ AVANZAR(1)</button>
-                        <button class="palette-btn" type="button" data-snippet="GIRAR_DER()">+ GIRAR_DER()</button>
-                        <button class="palette-btn" type="button" data-snippet="GIRAR_IZQ()">+ GIRAR_IZQ()</button>
-                        <button class="palette-btn" type="button" data-snippet="LOOP(2) {&#10;    AVANZAR(1)&#10;}">+ LOOP(2) { }</button>
-                        <button class="palette-btn" type="button" data-snippet="SCAN()">+ SCAN()</button>
+                        <button class="palette-btn" type="button" data-snippet="AVANZAR()">+ AVANZAR()</button>
+                        <button class="palette-btn" type="button" data-snippet="GIRAR_DER()">+ GIRAR_DER() [90° DER]</button>
+                        <button class="palette-btn" type="button" data-snippet="GIRAR_IZQ()">+ GIRAR_IZQ() [90° IZQ]</button>
+                        <button class="palette-btn" type="button" data-snippet="LOOP(2) {&#10;    AVANZAR()&#10;}">+ LOOP(2) { }</button>
+                        <button class="palette-btn" type="button" data-snippet="SCAN()">+ SCAN() [RADAR]</button>
                     </div>
                 </div>
 
@@ -102,7 +255,7 @@
                 </div>
 
                 <div class="telemetry-terminal">
-                    <div class="telemetry-terminal-header">TELEMETRY & FLIGHT RECORDER LOG</div>
+                    <div class="telemetry-terminal-header">TELEMETRY &amp; FLIGHT RECORDER LOG</div>
                     <div id="telemetry-log"></div>
                 </div>
             </div>
