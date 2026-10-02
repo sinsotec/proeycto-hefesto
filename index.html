@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tactical Vector Simulator 3D - Autonomous Pipeline</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+</head>
+<body>
+    <header class="tactical-header">
+        <div class="header-brand">
+            <div class="brand-icon"></div>
+            <h1 class="brand-title">TACTICAL VECTOR SIMULATOR 3D</h1>
+            <span class="brand-classification">LEVEL-2 PIPELINE &bull; ORDNANCE SIM</span>
+        </div>
+        <div class="header-controls">
+            <div class="header-item">
+                <label for="speed-select">SPEED:</label>
+                <select id="speed-select" class="tactical-select">
+                    <option value="1">1.0x NOMINAL</option>
+                    <option value="2">2.0x RAPID</option>
+                    <option value="4">4.0x HYPER</option>
+                </select>
+            </div>
+            <button id="btn-reset-camera" class="tactical-btn-small" type="button">RESET VIEW</button>
+            <button id="btn-mute" class="tactical-btn-small" type="button">AUDIO: ON</button>
+        </div>
+    </header>
+
+    <main class="tactical-main-layout">
+        <section class="viewport-section" aria-label="Tactical 3D World">
+            <div id="viewport-container"></div>
+            <div class="viewport-overlay">
+                <div id="mission-status-banner" class="status-banner banner-info">
+                    SYSTEM READY &bull; SELECT MODULE OR INITIATE PIPELINE
+                </div>
+                <div class="telemetry-card">
+                    <div class="telemetry-metric">
+                        <span class="metric-label">COORDINATES</span>
+                        <span id="telemetry-coordinates" class="metric-val">(2, 2)</span>
+                    </div>
+                    <div class="telemetry-metric">
+                        <span class="metric-label">HEADING VECTOR</span>
+                        <span id="telemetry-heading" class="metric-val">NORTH (+Y)</span>
+                    </div>
+                    <div class="telemetry-metric">
+                        <span class="metric-label">TARGET BEACON</span>
+                        <span id="telemetry-target" class="metric-val">(2, 8)</span>
+                    </div>
+                </div>
+            </div>
+            <div class="viewport-footer-legend">
+                GRID: 12x12 CARTESIAN ISOMETRIC &bull; X: [1..12] Y: [1..12]
+            </div>
+        </section>
+
+        <section class="console-section" aria-label="Mission Control Console">
+            <nav id="stage-tabs" class="stage-tabs-container"></nav>
+            <div class="console-body">
+                <div class="palette-container">
+                    <div class="palette-label">COMMAND GRAMMAR PALETTE</div>
+                    <div class="palette-buttons-row">
+                        <button class="palette-btn" type="button" data-snippet="AVANZAR(1)">+ AVANZAR(1)</button>
+                        <button class="palette-btn" type="button" data-snippet="GIRAR_DER()">+ GIRAR_DER()</button>
+                        <button class="palette-btn" type="button" data-snippet="GIRAR_IZQ()">+ GIRAR_IZQ()</button>
+                        <button class="palette-btn" type="button" data-snippet="LOOP(2) {&#10;    AVANZAR(1)&#10;}">+ LOOP(2) { }</button>
+                        <button class="palette-btn" type="button" data-snippet="SCAN()">+ SCAN()</button>
+                    </div>
+                </div>
+
+                <div class="editor-wrapper">
+                    <div id="editor-line-numbers" class="editor-gutter"></div>
+                    <textarea id="code-editor" class="editor-textarea" spellcheck="false" placeholder="Enter autonomous vector commands..."></textarea>
+                </div>
+
+                <div class="memory-hud-card">
+                    <div class="memory-hud-header">
+                        <span class="memory-title">MEMORY ALLOCATION HUD</span>
+                        <span id="memory-badge" class="memory-badge badge-optimal">OPTIMAL</span>
+                    </div>
+                    <div class="memory-bar-track">
+                        <div id="memory-bar-fill" class="memory-bar-fill bar-optimal"></div>
+                    </div>
+                    <div class="memory-info-row">
+                        <span id="memory-counter">0 INSTRUCTIONS</span>
+                        <span id="memory-description">Resource budget optimal.</span>
+                    </div>
+                </div>
+
+                <div class="action-buttons-group">
+                    <button id="btn-unit-test" class="tactical-action-btn btn-primary-action" type="button">
+                        TEST UNITARIO
+                    </button>
+                    <button id="btn-execute-pipeline" class="tactical-action-btn btn-master-action" type="button">
+                        EJECUTAR PIPELINE COMPLETO
+                    </button>
+                    <button id="btn-stop" class="tactical-action-btn btn-stop-action" type="button" disabled>
+                        ABORT
+                    </button>
+                </div>
+
+                <div class="telemetry-terminal">
+                    <div class="telemetry-terminal-header">TELEMETRY & FLIGHT RECORDER LOG</div>
+                    <div id="telemetry-log"></div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script src="js/parser.js"></script>
+    <script src="js/scene3d.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
